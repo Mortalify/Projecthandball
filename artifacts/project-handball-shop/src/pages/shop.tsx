@@ -1,0 +1,64 @@
+import { useState } from "react";
+import { products } from "@/lib/products";
+import { ProductCard } from "@/components/product-card";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+const CATEGORIES = ["All", "Tees", "Outerwear", "Bottoms", "Accessories"];
+
+export default function Shop() {
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const filteredProducts = activeCategory === "All" 
+    ? products 
+    : products.filter(p => p.category === activeCategory);
+
+  return (
+    <div className="min-h-screen bg-background py-12">
+      <div className="container mx-auto px-4">
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tight text-primary mb-4">Shop All Gear</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl">
+            Everything you need for the court. Premium apparel designed for wallball athletes.
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-10 pb-6 border-b border-primary/10">
+          {CATEGORIES.map(category => (
+            <Button
+              key={category}
+              variant={activeCategory === category ? "default" : "outline"}
+              onClick={() => setActiveCategory(category)}
+              className={
+                activeCategory === category 
+                  ? "bg-primary text-white font-bold uppercase tracking-wider" 
+                  : "border-primary/20 text-primary font-bold uppercase tracking-wider hover:bg-secondary/50"
+              }
+              data-testid={`filter-${category.toLowerCase()}`}
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
+
+        {/* Product Grid */}
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+            {filteredProducts.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
+        ) : (
+          <div className="py-20 text-center">
+            <h3 className="text-2xl font-display font-bold text-primary mb-2">No products found</h3>
+            <p className="text-muted-foreground mb-6">We don't have any products in this category yet.</p>
+            <Button onClick={() => setActiveCategory("All")} variant="outline" className="uppercase font-bold tracking-wider">
+              Clear Filters
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

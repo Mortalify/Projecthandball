@@ -1,0 +1,62 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "0J07N2m9N6P_a_Fd1EEb0"
+uri = "file://artifacts/project-handball-shop/public/images/hero.png"
+type = "image"
+title = "Hero wallball court players"
+
+[[generated]]
+id = "GQ_RbAPn8TPmWYwei1xkF"
+uri = "file://artifacts/project-handball-shop/public/images/classic-tee.png"
+type = "image"
+title = "Classic Tee lifestyle shot"
+
+[[generated]]
+id = "jaRi1mDAzel3I-OHAlNFT"
+uri = "file://artifacts/project-handball-shop/public/images/hoodie.png"
+type = "image"
+title = "Hoodie lifestyle shot"
+
+[[generated]]
+id = "a_Ls0BIX-sX8-D9qTxDPj"
+uri = "file://artifacts/project-handball-shop/public/images/warrior-tee.png"
+type = "image"
+title = "Warrior Tee lifestyle shot"
+
+[[generated]]
+id = "wxy2Tog3du6Ai73mrRuZ8"
+uri = "file://artifacts/project-handball-shop/public/images/cap.png"
+type = "image"
+title = "Cap lifestyle portrait"
+
+[[generated]]
+id = "etT4OOR862AGLWsDIN5ct"
+uri = "file://artifacts/project-handball-shop/public/images/shorts.png"
+type = "image"
+title = "Shorts action shot"
+
+[[generated]]
+id = "_W1SlVLfqi8LkNRM4Lvp3"
+uri = "file://artifacts/project-handball-shop/public/images/long-sleeve.png"
+type = "image"
+title = "Long sleeve action shot"
+
+[[generated]]
+id = "4h3g3vWYPm5l49HqoEvK1"
+uri = "file://artifacts/project-handball-shop/public/images/court-3.png"
+type = "image"
+title = "Wide shot of court"
+
+[[generated]]
+id = "JBitkSID-NLyQWz4etYET"
+uri = "file://artifacts/project-handball-shop/public/images/court-1.png"
+type = "image"
+title = "Athletes high five"
+
+[[generated]]
+id = "GC9ed-ej1IEUWDJB_hXwM"
+uri = "file://artifacts/project-handball-shop/public/images/court-2.png"
+type = "image"
+title = "Hand holding wallball"
