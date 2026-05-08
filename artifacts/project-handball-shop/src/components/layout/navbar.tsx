@@ -14,12 +14,14 @@ export function Navbar() {
   const toggleMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMenu = () => setMobileMenuOpen(false);
 
+  const navLinks = [
+    { href: "/", label: "Home", active: location === "/" },
+    { href: "/tournaments", label: "Tournaments", active: location === "/tournaments" },
+    { href: "/shop", label: "Shop All", active: location === "/shop" || location.startsWith("/product") },
+  ];
+
   return (
     <>
-      <div className="bg-primary text-primary-foreground text-center py-2 text-xs font-medium tracking-widest uppercase">
-        Free Shipping on Orders Over $150 &nbsp;|&nbsp; Use Code: <span className="font-bold text-accent">ACESERVE</span>
-      </div>
-
       <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex h-16 items-center justify-between">
@@ -31,22 +33,17 @@ export function Navbar() {
             </Link>
 
             <nav className="hidden md:flex items-center gap-8">
-              <Link
-                href="/"
-                className={`text-sm font-semibold uppercase tracking-widest transition-colors hover:text-accent relative group ${location === "/" ? "text-accent" : "text-foreground"}`}
-                data-testid="link-nav-home"
-              >
-                Home
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-accent transition-all duration-300 ${location === "/" ? "w-full" : "w-0 group-hover:w-full"}`} />
-              </Link>
-              <Link
-                href="/shop"
-                className={`text-sm font-semibold uppercase tracking-widest transition-colors hover:text-accent relative group ${location === "/shop" || location.startsWith("/product") ? "text-accent" : "text-foreground"}`}
-                data-testid="link-nav-shop"
-              >
-                Shop All
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-accent transition-all duration-300 ${location === "/shop" || location.startsWith("/product") ? "w-full" : "w-0 group-hover:w-full"}`} />
-              </Link>
+              {navLinks.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-semibold uppercase tracking-widest transition-colors hover:text-accent relative group ${link.active ? "text-accent" : "text-foreground"}`}
+                  data-testid={`link-nav-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+                >
+                  {link.label}
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-accent transition-all duration-300 ${link.active ? "w-full" : "w-0 group-hover:w-full"}`} />
+                </Link>
+              ))}
             </nav>
 
             <div className="flex items-center gap-3">
@@ -84,23 +81,19 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-[104px] z-40 bg-background/98 backdrop-blur-md border-b shadow-lg md:hidden"
+            className="fixed inset-x-0 top-16 z-40 bg-background/98 backdrop-blur-md border-b shadow-lg md:hidden"
           >
             <div className="flex flex-col p-6 gap-1">
-              <Link
-                href="/"
-                onClick={closeMenu}
-                className={`py-3 px-4 text-base font-bold uppercase tracking-widest rounded-lg transition-colors ${location === "/" ? "text-accent bg-accent/10" : "hover:bg-muted"}`}
-              >
-                Home
-              </Link>
-              <Link
-                href="/shop"
-                onClick={closeMenu}
-                className={`py-3 px-4 text-base font-bold uppercase tracking-widest rounded-lg transition-colors ${location === "/shop" ? "text-accent bg-accent/10" : "hover:bg-muted"}`}
-              >
-                Shop All
-              </Link>
+              {navLinks.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={closeMenu}
+                  className={`py-3 px-4 text-base font-bold uppercase tracking-widest rounded-lg transition-colors ${link.active ? "text-accent bg-accent/10" : "hover:bg-muted"}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </motion.div>
         )}

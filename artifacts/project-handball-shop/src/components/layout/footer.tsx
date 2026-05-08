@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Instagram, Youtube } from "lucide-react";
+import { Instagram, Youtube, Facebook } from "lucide-react";
 import { FaTiktok } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +23,46 @@ export function Footer() {
             <p className="text-primary-foreground/60 text-sm mb-6 max-w-xs leading-relaxed">
               We Create Quality Handball Apparel. Built for the concrete courts, designed for the culture.
             </p>
-            <div className="flex items-center gap-4">
-              <a href="#" aria-label="YouTube" className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/60 hover:text-accent hover:border-accent transition-colors" data-testid="link-social-youtube">
+            <div className="flex items-center gap-3">
+              <a
+                href="https://www.youtube.com/@ProjectHandball"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+                className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/60 hover:text-accent hover:border-accent transition-colors"
+                data-testid="link-social-youtube"
+              >
                 <Youtube className="h-4 w-4" />
               </a>
-              <a href="#" aria-label="Instagram" className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/60 hover:text-accent hover:border-accent transition-colors" data-testid="link-social-instagram">
+              <a
+                href="https://www.instagram.com/projecthandball/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/60 hover:text-accent hover:border-accent transition-colors"
+                data-testid="link-social-instagram"
+              >
                 <Instagram className="h-4 w-4" />
               </a>
-              <a href="#" aria-label="TikTok" className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/60 hover:text-accent hover:border-accent transition-colors" data-testid="link-social-tiktok">
+              <a
+                href="https://www.tiktok.com/@projecthandball"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/60 hover:text-accent hover:border-accent transition-colors"
+                data-testid="link-social-tiktok"
+              >
                 <FaTiktok className="h-3.5 w-3.5" />
+              </a>
+              <a
+                href="https://www.facebook.com/ProjectHandball/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/60 hover:text-accent hover:border-accent transition-colors"
+                data-testid="link-social-facebook"
+              >
+                <Facebook className="h-4 w-4" />
               </a>
             </div>
           </div>
@@ -41,17 +72,17 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li><Link href="/shop" className="text-primary-foreground/70 hover:text-accent transition-colors">All Products</Link></li>
               <li><Link href="/shop?category=Tees" className="text-primary-foreground/70 hover:text-accent transition-colors">Tees</Link></li>
-              <li><Link href="/shop?category=Outerwear" className="text-primary-foreground/70 hover:text-accent transition-colors">Outerwear</Link></li>
-              <li><Link href="/shop?category=Bottoms" className="text-primary-foreground/70 hover:text-accent transition-colors">Bottoms</Link></li>
+              <li><Link href="/shop?category=Hoodies" className="text-primary-foreground/70 hover:text-accent transition-colors">Hoodies</Link></li>
+              <li><Link href="/shop?category=Tanks" className="text-primary-foreground/70 hover:text-accent transition-colors">Tanks</Link></li>
               <li><Link href="/shop?category=Accessories" className="text-primary-foreground/70 hover:text-accent transition-colors">Accessories</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-display font-bold text-sm uppercase tracking-widest mb-5 text-primary-foreground/40">Support</h3>
+            <h3 className="font-display font-bold text-sm uppercase tracking-widest mb-5 text-primary-foreground/40">Compete</h3>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">FAQ</a></li>
-              <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">Shipping Info</a></li>
+              <li><Link href="/tournaments" className="text-primary-foreground/70 hover:text-accent transition-colors">Upcoming Tournaments</Link></li>
+              <li><Link href="/tournaments" className="text-primary-foreground/70 hover:text-accent transition-colors">Leaderboards</Link></li>
               <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">Contact Us</a></li>
               <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">Size Guide</a></li>
             </ul>
