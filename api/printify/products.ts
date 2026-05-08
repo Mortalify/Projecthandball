@@ -1,11 +1,11 @@
-const PRINTIFY_API = "https://api.printify.com/v1";
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+const PRINTIFY_API = "https://api.printify.com/v1";
 type PrintifyColorValue = { id: number; title: string; colors: string[] };
 type PrintifyOption = { name: string; type: string; values: PrintifyColorValue[] };
 type PrintifyVariant = { id: number; price: number; is_enabled: boolean; options: number[] };
 type PrintifyImage = { src: string; variant_ids: number[]; is_default: boolean; is_selected_for_publishing: boolean };
 type PrintifyProduct = { id: string; title: string; description: string; tags: string[]; images: PrintifyImage[]; variants: PrintifyVariant[]; options: PrintifyOption[]; visible: boolean };
-
 function inferCategory(tags: string[]): string {
   const lower = tags.map((t) => t.toLowerCase());
   if (lower.some((t) => t.includes("hoodie") || t.includes("sweatshirt"))) return "Hoodies";
@@ -13,7 +13,6 @@ function inferCategory(tags: string[]): string {
   if (lower.some((t) => t.includes("tank"))) return "Tanks";
   return "Accessories";
 }
-
 function adaptProduct(p: PrintifyProduct) {
   const colorOption = p.options.find((o) => o.name === "Colors");
   const sizeOption = p.options.find((o) => o.name === "Sizes");
@@ -47,14 +46,11 @@ function adaptProduct(p: PrintifyProduct) {
   }
   return { id: p.id, name: p.title, price, description: p.description?.replace(/<[^>]+>/g, " ").trim() ?? "", image: defaultImage, images, colorImages, sizes, colors, category: inferCategory(p.tags) };
 }
-
-export default async function handler(req: any, res: any) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = process.env.PRINTIFY_API_KEY;
   const shopId = process.env.PRINTIFY_SHOP_ID;
   if (!apiKey || !shopId) return res.status(500).json({ error: "Printify not configured" });
-
   res.setHeader("Access-Control-Allow-Origin", "*");
-
   try {
     const all: PrintifyProduct[] = [];
     for (const page of [1, 2]) {
