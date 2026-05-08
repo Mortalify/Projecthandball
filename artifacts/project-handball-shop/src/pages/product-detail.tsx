@@ -6,8 +6,8 @@ import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Minus, Plus, ChevronRight, Check } from "lucide-react";
-import { motion } from "framer-motion";
+import { Minus, Plus, ChevronRight, Check, ChevronLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +18,7 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState<ProductColor>(product?.colors[0] || { name: "Black", hex: "#1A1A1A" });
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
 
   if (!product) {
     return (
@@ -32,6 +33,7 @@ export default function ProductDetail() {
   }
 
   const relatedProducts = getRelatedProducts(product.id, 3);
+  const allImages = product.images.length > 0 ? product.images : [product.image];
 
   const handleAddToCart = () => {
     addItem(product, selectedSize, selectedColor, quantity);
@@ -41,6 +43,9 @@ export default function ProductDetail() {
 
   const increaseQuantity = () => setQuantity(q => q + 1);
   const decreaseQuantity = () => setQuantity(q => Math.max(1, q - 1));
+
+  const prevImage = () => setActiveImg(i => (i - 1 + allImages.length) % allImages.length);
+  const nextImage = () => setActiveImg(i => (i + 1) % allImages.length);
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,19 +62,81 @@ export default function ProductDetail() {
 
       <div className="container mx-auto px-4 py-12 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-          {/* Product Image */}
+          {/* Product Gallery */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="relative aspect-[3/4] bg-muted w-full overflow-hidden rounded-2xl"
+            className="flex flex-col gap-4"
           >
-            {product.isNew && (
-              <div className="absolute top-4 left-4 z-10 bg-accent text-white text-xs font-bold px-3 py-1.5 uppercase tracking-wider rounded-full">
-                New Arrival
+            {/* Main Image */}
+            <div className="relative aspect-[3/4] bg-muted w-full overflow-hidden rounded-2xl group">
+              {product.isNew && (
+                <div className="absolute top-4 left-4 z-10 bg-accent text-white text-xs font-bold px-3 py-1.5 uppercase tracking-wider rounded-full">
+                  New Arrival
+                </div>
+              )}
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={activeImg}
+                  src={allImages[activeImg]}
+                  alt={`${product.name} - view ${activeImg + 1}`}
+                  className="w-full h-full object-cover"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </AnimatePresence>
+
+              {/* Prev/Next arrows — only show if multiple images */}
+              {allImages.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-primary" />
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-5 w-5 text-primary" />
+                  </button>
+                  {/* Dot indicators */}
+                  <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                    {allImages.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveImg(i)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${i === activeImg ? "bg-white w-4" : "bg-white/50"}`}
+                        aria-label={`View ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Thumbnail Strip */}
+            {allImages.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {allImages.map((src, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImg(i)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      i === activeImg ? "border-accent scale-105" : "border-transparent opacity-70 hover:opacity-100 hover:border-border"
+                    }`}
+                  >
+                    <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
             )}
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
           </motion.div>
 
           {/* Product Details */}

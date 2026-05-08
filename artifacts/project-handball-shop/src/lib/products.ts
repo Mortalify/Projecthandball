@@ -24,11 +24,16 @@ export type Product = {
   price: number;
   description: string;
   image: string;
+  images: string[];
   sizes: string[];
   colors: ProductColor[];
   category: string;
   isNew?: boolean;
 };
+
+function gallery(folder: string, count: number): string[] {
+  return Array.from({ length: count }, (_, i) => `/images/products/${folder}/${i + 1}.jpg`);
+}
 
 export const products: Product[] = [
   {
@@ -36,7 +41,8 @@ export const products: Product[] = [
     name: "ProjectHandball X FL Limited Edition Tee",
     price: 35,
     description: "A limited edition collab tee you won't find anywhere else. Premium cotton, bold graphics, and that Project Handball energy. Grab it before it's gone.",
-    image: "/images/i-got-next-cotton-tee.jpg",
+    image: "/images/products/i-got-next-cotton-tee/1.jpg",
+    images: gallery("i-got-next-cotton-tee", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Tees",
@@ -47,7 +53,8 @@ export const products: Product[] = [
     name: "Simply Handball Hoodie",
     price: 45,
     description: "100% organic cotton hoodie that says exactly what it needs to say. Clean design, premium feel, built for the player who lets their game do the talking.",
-    image: "/images/simply-handball-hoodie.jpg",
+    image: "/images/products/simply-handball-hoodie/1.jpg",
+    images: gallery("simply-handball-hoodie", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Hoodies",
@@ -58,7 +65,8 @@ export const products: Product[] = [
     name: '"I Got Next." Hoodie',
     price: 45,
     description: "The three words that echo across every handball court. Heavy fleece hoodie with embroidered details. A statement piece for those who are always ready.",
-    image: "/images/i-got-next-hoodie.jpg",
+    image: "/images/products/maroon-i-got-next-hoodie/1.jpg",
+    images: gallery("maroon-i-got-next-hoodie", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Hoodies",
@@ -68,7 +76,8 @@ export const products: Product[] = [
     name: "I ♥ Handball Hoodie",
     price: 45,
     description: "For those who don't just play handball — they live it. Cozy heavyweight hoodie with the classic I Love Handball graphic. A gift-ready fan favorite.",
-    image: "/images/i-love-handball-hoodie.jpg",
+    image: "/images/products/i-3-handball-hoodie/1.jpg",
+    images: gallery("i-3-handball-hoodie", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Hoodies",
@@ -78,7 +87,8 @@ export const products: Product[] = [
     name: "Rightside Hoodie (Stripe)",
     price: 45,
     description: "A bold stripe design that turns heads on and off the court. Heavyweight fleece with a clean cut. Because your warm-up gear should be as sharp as your serve.",
-    image: "/images/rightside-stripe.jpg",
+    image: "/images/products/rightside-stripe/1.jpg",
+    images: gallery("rightside-stripe", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Hoodies",
@@ -88,7 +98,8 @@ export const products: Product[] = [
     name: '"The True Sport" Dry-Fit Tee',
     price: 35,
     description: "Lightweight, breathable dry-fit material built for competitive play. Moisture-wicking fabric keeps you cool when the rallies get long. Represent the truest sport.",
-    image: "/images/true-sport-dry-fit.jpg",
+    image: "/images/products/the-true-sport-dry-fit-tee/1.jpg",
+    images: gallery("the-true-sport-dry-fit-tee", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Tees",
@@ -98,7 +109,8 @@ export const products: Product[] = [
     name: '"The True Sport" Cotton Tee',
     price: 25,
     description: "Represent handball and New York culture with this unique cotton tee. Soft, durable, and broken in from day one. A staple for any real one.",
-    image: "/images/true-sport-cotton.jpg",
+    image: "/images/products/the-true-sport-t-shirt/1.jpg",
+    images: gallery("the-true-sport-t-shirt", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Tees",
@@ -108,7 +120,8 @@ export const products: Product[] = [
     name: '"Where There\'s A Will" Tee',
     price: 35,
     description: "The mantra of every handball player who ever grinded through a tough match. Heavyweight cotton tee with a motivational graphic that hits every time.",
-    image: "/images/where-theres-a-will.jpg",
+    image: "/images/products/where-theres-a-will-t-shirt/1.jpg",
+    images: gallery("where-theres-a-will-t-shirt", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Tees",
@@ -118,17 +131,19 @@ export const products: Product[] = [
     name: "May The 4th Be With You Tee",
     price: 35,
     description: "A crossover classic for the handball player who's also a fan of the galaxy far, far away. Limited seasonal drop. Wear it with pride on and off the court.",
-    image: "/images/may-the-4th.jpg",
+    image: "/images/products/may-the-4th-be-with-you/1.jpg",
+    images: gallery("may-the-4th-be-with-you", 8),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Tees",
   },
   {
     id: "vlogger-tee",
-    name: '"Im A Vlogger" Tee',
+    name: '"What Are You Wearing?" Tee',
     price: 35,
     description: "For the player documenting the culture. A tongue-in-cheek nod to everyone out here filming every ace and lob shot. Soft cotton, standout graphic.",
-    image: "/images/vlogger-tee.jpg",
+    image: "/images/products/what-are-you-wearing-tee/1.jpg",
+    images: gallery("what-are-you-wearing-tee", 2),
     sizes: ["S", "M", "L", "XL", "2XL"],
     colors: AVAILABLE_COLORS,
     category: "Tees",
@@ -138,9 +153,10 @@ export const products: Product[] = [
     name: 'Pink "I Got Next." Dry-Fit Tank',
     price: 35,
     description: "Sleek pink dry-fit tank for the player who stays fresh under pressure. Moisture-wicking, lightweight, and built for full range of motion. Court-ready from the jump.",
-    image: "/images/pink-dry-fit-tank.jpg",
+    image: "/images/products/pink-i-got-next-dry-fit-jersey/1.jpg",
+    images: gallery("pink-i-got-next-dry-fit-jersey", 2),
     sizes: ["S", "M", "L", "XL", "2XL"],
-    colors: AVAILABLE_COLORS,
+    colors: [{ name: "Pink", hex: "#FFB6C1" }],
     category: "Tanks",
   },
   {
@@ -148,9 +164,10 @@ export const products: Product[] = [
     name: 'Black "I Got Next." Dry-Fit Tank',
     price: 35,
     description: "The classic in black. Dry-fit performance tank that moves with you. Clean, minimal, and unmistakably Project Handball. A wardrobe essential for any player.",
-    image: "/images/black-dry-fit-tank.jpg",
+    image: "/images/products/black-i-got-next-dry-fit-jersey/1.jpg",
+    images: gallery("black-i-got-next-dry-fit-jersey", 2),
     sizes: ["S", "M", "L", "XL", "2XL"],
-    colors: AVAILABLE_COLORS,
+    colors: [{ name: "Black", hex: "#1A1A1A" }],
     category: "Tanks",
   },
   {
@@ -158,9 +175,10 @@ export const products: Product[] = [
     name: 'Red "I Got Next." Dry-Fit Tank',
     price: 35,
     description: "Bold red colorway for players who want to be seen. Same performance dry-fit build — moisture-wicking, breathable, competition-ready on any court.",
-    image: "/images/red-dry-fit-tank.jpg",
+    image: "/images/products/red-i-got-next-v-neck-jersey/1.jpg",
+    images: gallery("red-i-got-next-v-neck-jersey", 2),
     sizes: ["S", "M", "L", "XL", "2XL"],
-    colors: AVAILABLE_COLORS,
+    colors: [{ name: "Red", hex: "#CC0000" }],
     category: "Tanks",
   },
   {
@@ -168,9 +186,10 @@ export const products: Product[] = [
     name: 'Blue "I Got Next." Dry-Fit Tank',
     price: 35,
     description: "Sky blue dry-fit tank for the warm weather grinder. Lightweight performance fabric keeps you cool when the sun is beating down and the rallies keep coming.",
-    image: "/images/blue-dry-fit-tank.jpg",
+    image: "/images/products/blue-i-got-next-v-neck-jersey/1.jpg",
+    images: gallery("blue-i-got-next-v-neck-jersey", 2),
     sizes: ["S", "M", "L", "XL", "2XL"],
-    colors: AVAILABLE_COLORS,
+    colors: [{ name: "Blue", hex: "#3BB7FD" }],
     category: "Tanks",
   },
   {
@@ -178,9 +197,10 @@ export const products: Product[] = [
     name: 'Grey "I Got Next." Dry-Fit Tank',
     price: 35,
     description: "The clean grey colorway for the understated player who lets their game speak loudest. Dry-fit performance with the iconic I Got Next. graphic.",
-    image: "/images/grey-dry-fit-tank.jpg",
+    image: "/images/products/grey-i-got-next-dry-fit-jersey/1.jpg",
+    images: gallery("grey-i-got-next-dry-fit-jersey", 2),
     sizes: ["S", "M", "L", "XL", "2XL"],
-    colors: AVAILABLE_COLORS,
+    colors: [{ name: "Grey", hex: "#9E9E9E" }],
     category: "Tanks",
   },
   {
@@ -188,7 +208,8 @@ export const products: Product[] = [
     name: "ProjectHandball AirPods Case",
     price: 15,
     description: "Rep the brand even when you're not on the court. Custom ProjectHandball AirPods case — the perfect accessory drop for the handball fan who has everything.",
-    image: "/images/airpods-case.jpg",
+    image: "/images/products/projecthandball-airpods-case/1.jpg",
+    images: gallery("projecthandball-airpods-case", 6),
     sizes: ["One Size"],
     colors: [{ name: "Black", hex: "#1A1A1A" }],
     category: "Accessories",
@@ -202,7 +223,6 @@ export function getProduct(id: string): Product | undefined {
 
 export function getRelatedProducts(id: string, limit = 4): Product[] {
   const product = products.find(p => p.id === id);
-  // Prefer same category
   const sameCategory = products.filter(p => p.id !== id && p.category === product?.category);
   const others = products.filter(p => p.id !== id && p.category !== product?.category);
   return [...sameCategory, ...others].slice(0, limit);
