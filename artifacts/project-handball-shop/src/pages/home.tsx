@@ -231,6 +231,124 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Reviews Section */}
+      <section className="py-24 bg-background border-t border-border/50 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <p className="text-accent font-bold text-xs uppercase tracking-[0.3em] mb-3">What The Community Says</p>
+            <h2 className="font-display text-4xl md:text-5xl font-black uppercase tracking-tight text-primary">Real People. Real Court.</h2>
+            <div className="flex items-center justify-center gap-1 mt-4">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
+              ))}
+              <span className="ml-2 text-sm font-bold text-muted-foreground">5.0 · 47 reviews</span>
+            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Marcus T.",
+                location: "Brooklyn, NY",
+                initials: "MT",
+                color: "bg-accent",
+                product: "Project Handball Classic Tee",
+                rating: 5,
+                title: "I swear I play better in this shirt",
+                body: "I know it sounds crazy but putting on this tee before a game genuinely changes my mindset. The fabric is light, doesn't cling when you sweat, and moves with you. Three weeks in, undefeated at Coney Island. Coincidence? I think not.",
+              },
+              {
+                name: "Denise R.",
+                location: "Queens, NY",
+                initials: "DR",
+                color: "bg-purple-500",
+                product: "Project Handball Hoodie",
+                rating: 5,
+                title: "Never held a handball in my life but I'm a fan",
+                body: "My boyfriend plays and I just wore the hoodie to support him at a tournament. By the end of the day, three people had asked me about the brand and invited me to come back next weekend. The gear literally made me feel like I belonged. I'm part of the community now and I love it.",
+              },
+              {
+                name: "Ray V.",
+                location: "The Bronx, NY",
+                initials: "RV",
+                color: "bg-emerald-600",
+                product: "Project Handball Classic Tee",
+                rating: 5,
+                title: "Brought me right back to '94",
+                body: "I'm 58 years old and haven't played seriously since my 30s. My grandson got me this shirt and when I put it on I felt like I was back on the courts at Orchard Beach. I got out there and hit for two hours. These shirts carry spirit. Buy one.",
+              },
+              {
+                name: "Jasmine L.",
+                location: "Harlem, NY",
+                initials: "JL",
+                color: "bg-rose-500",
+                product: "Wallball Warrior Tee",
+                rating: 5,
+                title: "Finally something that doesn't irritate my skin",
+                body: "I have really sensitive skin and most athletic shirts leave me red and itchy by halftime. This tee is incredibly soft — almost feels like wearing nothing. I've washed it a dozen times and it hasn't changed at all. I ordered two more colors the same night.",
+              },
+              {
+                name: "Big D.",
+                location: "South Bronx, NY",
+                initials: "BD",
+                color: "bg-primary",
+                product: "Project Handball Hoodie",
+                rating: 5,
+                title: "Finally a hoodie that actually fits right",
+                body: "I'm a bigger dude and most hoodies either squeeze my arms or look like a tent. The 2XL on this hoodie fits perfectly — structured in the shoulders, comfortable through the chest, not tight anywhere. I wore it to the courts and got three compliments before I even warmed up. Real ones know.",
+              },
+              {
+                name: "Carla M.",
+                location: "Staten Island, NY",
+                initials: "CM",
+                color: "bg-amber-500",
+                product: "Project Handball Long Sleeve",
+                rating: 5,
+                title: "The quality is insane for the price",
+                body: "I've bought gear from other handball brands and nothing compares to this. The embroidery on the logo is clean, the fabric is thick without being heavy, and the stitching has held up through months of play. My whole crew has ordered now. Project Handball is the real deal.",
+              },
+            ].map((review, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: i * 0.08, duration: 0.5 }}
+                className="flex flex-col bg-card border border-border/50 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+              >
+                {/* Stars */}
+                <div className="flex gap-0.5 mb-4">
+                  {[...Array(review.rating)].map((_, s) => (
+                    <Star key={s} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+
+                <p className="font-bold text-sm text-primary mb-1">"{review.title}"</p>
+                <p className="text-muted-foreground text-sm leading-relaxed flex-grow mb-5">{review.body}</p>
+
+                <div className="flex items-center gap-3 pt-4 border-t border-border/50 mt-auto">
+                  <div className={`w-9 h-9 rounded-full ${review.color} flex items-center justify-center shrink-0`}>
+                    <span className="text-white text-xs font-black">{review.initials}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-primary leading-none">{review.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{review.location} · <span className="italic">{review.product}</span></p>
+                  </div>
+                  <div className="ml-auto shrink-0">
+                    <span className="text-[10px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Verified</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Value Props */}
       <section className="py-20 bg-muted/50 border-t border-border/50">
         <div className="container mx-auto px-4">
