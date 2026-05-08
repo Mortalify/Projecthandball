@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { getProduct, getRelatedProducts, type ProductColor } from "@/lib/products";
+import { useProduct, useProducts } from "@/hooks/use-printify";
+import type { ProductColor } from "@/lib/printify";
 import { useCart } from "@/contexts/cart-context";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
@@ -9,23 +10,50 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Minus, Plus, ChevronRight, Check, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-background animate-pulse">
+      <div className="border-b bg-muted/30 h-12" />
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="aspect-[3/4] bg-muted rounded-2xl" />
+          <div className="space-y-4">
+            <div className="h-4 bg-muted rounded w-1/4" />
+            <div className="h-10 bg-muted rounded w-3/4" />
+            <div className="h-8 bg-muted rounded w-1/4" />
+            <div className="h-24 bg-muted rounded" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
-  const product = id ? getProduct(id) : undefined;
+  const { product, loading, error } = useProduct(id);
+  const { products } = useProducts();
   const { addItem } = useCart();
 
-  const [selectedSize, setSelectedSize] = useState<string>(product?.sizes[0] || "");
-  const [selectedColor, setSelectedColor] = useState<ProductColor>(product?.colors[0] || { name: "Black", hex: "#1A1A1A" });
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<ProductColor>({ name: "Black", hex: "#1A1A1A" });
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
-  const [activeImg, setActiveImg] = useState(() => {
-    if (!product) return 0;
-    const firstColor = product.colors[0];
-    const idx = firstColor ? product.colorImages[firstColor.name] : undefined;
-    return idx !== undefined ? idx : 0;
-  });
+  const [activeImg, setActiveImg] = useState(0);
 
-  if (!product) {
+  useEffect(() => {
+    if (product) {
+      const firstColor = product.colors[0];
+      setSelectedColor(firstColor ?? { name: "Black", hex: "#1A1A1A" });
+      setSelectedSize(product.sizes[0] ?? "");
+      const idx = firstColor ? product.colorImages[firstColor.name] : undefined;
+      setActiveImg(idx !== undefined ? idx : 0);
+    }
+  }, [product]);
+
+  if (loading) return <LoadingSkeleton />;
+
+  if (error || !product) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-background">
         <h1 className="text-3xl font-display font-bold text-primary mb-4">Product Not Found</h1>
@@ -37,7 +65,10 @@ export default function ProductDetail() {
     );
   }
 
-  const relatedProducts = getRelatedProducts(product.id, 3);
+  const relatedProducts = products
+    .filter(p => p.id !== product.id && p.category === product.category)
+    .slice(0, 3);
+
   const allImages = product.images.length > 0 ? product.images : [product.image];
 
   const handleAddToCart = () => {
@@ -49,13 +80,8 @@ export default function ProductDetail() {
   const handleColorSelect = (color: ProductColor) => {
     setSelectedColor(color);
     const imgIdx = product.colorImages[color.name];
-    if (imgIdx !== undefined) {
-      setActiveImg(imgIdx);
-    }
+    if (imgIdx !== undefined) setActiveImg(imgIdx);
   };
-
-  const increaseQuantity = () => setQuantity(q => q + 1);
-  const decreaseQuantity = () => setQuantity(q => Math.max(1, q - 1));
 
   const prevImage = () => setActiveImg(i => (i - 1 + allImages.length) % allImages.length);
   const nextImage = () => setActiveImg(i => (i + 1) % allImages.length);
@@ -82,15 +108,12 @@ export default function ProductDetail() {
             transition={{ duration: 0.5 }}
             className="flex flex-col gap-4"
           >
-            {/* Main Image */}
             <div className="relative aspect-[3/4] bg-muted w-full overflow-hidden rounded-2xl group">
               {product.isNew && (
                 <div className="absolute top-4 left-4 z-10 bg-accent text-white text-xs font-bold px-3 py-1.5 uppercase tracking-wider rounded-full">
                   New Arrival
                 </div>
               )}
-
-              {/* Color label overlay */}
               <div className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
                 {selectedColor.name}
               </div>
@@ -108,7 +131,6 @@ export default function ProductDetail() {
                 />
               </AnimatePresence>
 
-              {/* Prev/Next arrows */}
               {allImages.length > 1 && (
                 <>
                   <button
@@ -125,7 +147,6 @@ export default function ProductDetail() {
                   >
                     <ChevronRight className="h-5 w-5 text-primary" />
                   </button>
-                  {/* Dot indicators */}
                   <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
                     {allImages.map((_, i) => (
                       <button
@@ -140,11 +161,9 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {/* Thumbnail Strip — grouped by color */}
             {allImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 {allImages.map((src, i) => {
-                  // Find which color this image belongs to
                   const colorForThumb = Object.entries(product.colorImages).find(([, startIdx]) => {
                     const entries = Object.values(product.colorImages).sort((a, b) => a - b);
                     const thisStart = startIdx;
@@ -187,26 +206,22 @@ export default function ProductDetail() {
             <h1 className="font-display text-4xl md:text-5xl font-black uppercase tracking-tight text-primary mb-3 leading-tight">
               {product.name}
             </h1>
-            <p className="text-2xl font-black text-accent mb-6">${product.price}</p>
+            <p className="text-2xl font-black text-accent mb-6">${product.price.toFixed(2)}</p>
 
-            <p className="text-muted-foreground leading-relaxed mb-8">
-              {product.description}
-            </p>
+            <p className="text-muted-foreground leading-relaxed mb-8">{product.description}</p>
 
             <div className="space-y-7 mb-10">
               {/* Color Picker */}
               {product.colors.length > 1 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <Label className="font-bold text-sm uppercase tracking-wider text-primary">
-                      Color
-                    </Label>
+                    <Label className="font-bold text-sm uppercase tracking-wider text-primary">Color</Label>
                     <span className="text-sm font-semibold text-foreground">{selectedColor.name}</span>
                   </div>
                   <div className="flex flex-wrap gap-2.5">
                     {product.colors.map((color) => {
                       const isSelected = selectedColor.name === color.name;
-                      const isLight = ["Light Blue", "Light Pink", "Safety Green", "Natural", "Sand", "White", "Athletic Heather", "Gold", "Mint", "Pink"].includes(color.name);
+                      const isLight = ["Light Blue", "Light Pink", "Safety Green", "Natural", "Sand", "White", "Athletic Heather", "Gold", "Mint", "Pink", "Ash", "Sport Grey"].includes(color.name);
                       return (
                         <button
                           key={color.name}
@@ -267,21 +282,11 @@ export default function ProductDetail() {
               <div>
                 <Label className="block font-bold text-sm uppercase tracking-wider text-primary mb-3">Quantity</Label>
                 <div className="flex items-center rounded-xl border-2 border-border w-max overflow-hidden">
-                  <button
-                    onClick={decreaseQuantity}
-                    className="w-12 h-12 flex items-center justify-center hover:bg-muted text-primary transition-colors"
-                    aria-label="Decrease quantity"
-                  >
+                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center hover:bg-muted text-primary transition-colors" aria-label="Decrease quantity">
                     <Minus className="h-4 w-4" />
                   </button>
-                  <div className="w-12 h-12 flex items-center justify-center font-bold text-base border-x-2 border-border">
-                    {quantity}
-                  </div>
-                  <button
-                    onClick={increaseQuantity}
-                    className="w-12 h-12 flex items-center justify-center hover:bg-muted text-primary transition-colors"
-                    aria-label="Increase quantity"
-                  >
+                  <div className="w-12 h-12 flex items-center justify-center font-bold text-base border-x-2 border-border">{quantity}</div>
+                  <button onClick={() => setQuantity(q => q + 1)} className="w-12 h-12 flex items-center justify-center hover:bg-muted text-primary transition-colors" aria-label="Increase quantity">
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
@@ -299,7 +304,7 @@ export default function ProductDetail() {
               {isAdded ? (
                 <span className="flex items-center gap-2"><Check className="h-5 w-5" /> Added to Cart</span>
               ) : (
-                `Add to Cart — $${product.price * quantity}`
+                `Add to Cart — $${(product.price * quantity).toFixed(2)}`
               )}
             </Button>
 
@@ -312,16 +317,18 @@ export default function ProductDetail() {
       </div>
 
       {/* Related Products */}
-      <section className="py-20 bg-muted/30 border-t border-border/50">
-        <div className="container mx-auto px-4">
-          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-primary mb-10 text-center">Complete The Fit</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {relatedProducts.map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
-            ))}
+      {relatedProducts.length > 0 && (
+        <section className="py-20 bg-muted/30 border-t border-border/50">
+          <div className="container mx-auto px-4">
+            <h2 className="font-display text-3xl font-black uppercase tracking-tight text-primary mb-10 text-center">Complete The Fit</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              {relatedProducts.map((p, index) => (
+                <ProductCard key={p.id} product={p} index={index} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

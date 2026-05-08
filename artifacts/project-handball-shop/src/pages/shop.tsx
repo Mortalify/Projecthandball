@@ -1,13 +1,24 @@
 import { useState } from "react";
-import { products } from "@/lib/products";
+import { useProducts } from "@/hooks/use-printify";
 import { ProductCard } from "@/components/product-card";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 const CATEGORIES = ["All", "Tees", "Hoodies", "Tanks", "Accessories"];
 
+function ProductSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="aspect-[3/4] bg-muted rounded-xl mb-4" />
+      <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+      <div className="h-4 bg-muted rounded w-1/3" />
+    </div>
+  );
+}
+
 export default function Shop() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const { products, loading, error } = useProducts();
 
   const filteredProducts = activeCategory === "All"
     ? products
@@ -15,7 +26,6 @@ export default function Shop() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Free Shipping Banner — shop page only */}
       <div className="bg-primary text-primary-foreground text-center py-2 text-xs font-medium tracking-widest uppercase">
         Free Shipping on Orders Over $150 &nbsp;|&nbsp; Use Code: <span className="font-bold text-accent">ACESERVE</span>
       </div>
@@ -48,8 +58,23 @@ export default function Shop() {
             ))}
           </div>
 
+          {/* Loading */}
+          {loading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+              {Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)}
+            </div>
+          )}
+
+          {/* Error */}
+          {error && !loading && (
+            <div className="py-20 text-center">
+              <h3 className="text-2xl font-display font-bold text-primary mb-2">Couldn't load products</h3>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
+          )}
+
           {/* Product Grid */}
-          {filteredProducts.length > 0 ? (
+          {!loading && !error && filteredProducts.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
               {filteredProducts.map((product, index) => (
                 <motion.div
@@ -62,7 +87,9 @@ export default function Shop() {
                 </motion.div>
               ))}
             </div>
-          ) : (
+          )}
+
+          {!loading && !error && filteredProducts.length === 0 && (
             <div className="py-20 text-center">
               <h3 className="text-2xl font-display font-bold text-primary mb-2">No products found</h3>
               <p className="text-muted-foreground mb-6">We don't have any products in this category yet.</p>

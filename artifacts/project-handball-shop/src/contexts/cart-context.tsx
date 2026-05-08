@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Product, ProductColor } from "@/lib/products";
+import type { Product, ProductColor } from "@/lib/printify";
 import { toast } from "@/hooks/use-toast";
 
 export type CartItem = {

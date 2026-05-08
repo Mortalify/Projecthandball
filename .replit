@@ -30,3 +30,8 @@ externalPort = 8081
 [[ports]]
 localPort = 24362
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+PRINTIFY_SHOP_ID = "12043160"

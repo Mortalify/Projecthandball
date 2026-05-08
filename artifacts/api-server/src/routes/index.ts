@@ -4,6 +4,7 @@ import ordersRouter from "./orders.js";
 import authRouter from "./auth.js";
 import registrationsRouter from "./registrations.js";
 import leaderboardRouter from "./leaderboard.js";
+import printifyRouter from "./printify.js";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(ordersRouter);
 router.use(authRouter);
 router.use(registrationsRouter);
 router.use(leaderboardRouter);
+router.use(printifyRouter);
 
 export default router;

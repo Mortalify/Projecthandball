@@ -1,12 +1,13 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { products } from "@/lib/products";
+import { useProducts } from "@/hooks/use-printify";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Truck, ShieldCheck } from "lucide-react";
 import logoSrc from "@assets/project_handball_logo_1778253221361.png";
 
 export default function Home() {
+  const { products, loading } = useProducts();
   const featuredProducts = products.slice(0, 3);
 
   return (
