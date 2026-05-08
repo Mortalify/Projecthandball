@@ -4,7 +4,7 @@ import { ProductCard } from "@/components/product-card";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
-const CATEGORIES = ["All", "Tees", "Outerwear", "Bottoms", "Accessories"];
+const CATEGORIES = ["All", "Tees", "Hoodies", "Tanks", "Accessories"];
 
 export default function Shop() {
   const [activeCategory, setActiveCategory] = useState("All");
