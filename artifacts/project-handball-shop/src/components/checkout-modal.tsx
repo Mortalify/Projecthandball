@@ -235,12 +235,15 @@ export function CheckoutModal({ open, onClose, items, subtotal, onConfirmed }: C
                   <p className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-3">Items</p>
                   <div className="space-y-2">
                     {items.map(item => (
-                      <div key={`${item.product.id}-${item.size}`} className="flex justify-between items-center">
-                        <div>
-                          <span className="font-semibold">{item.product.name}</span>
-                          <span className="text-muted-foreground ml-2 text-xs">× {item.quantity} / {item.size}</span>
+                      <div key={`${item.product.id}-${item.size}-${item.color.name}`} className="flex justify-between items-start gap-2">
+                        <div className="min-w-0">
+                          <span className="font-semibold block leading-tight">{item.product.name}</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="w-2.5 h-2.5 rounded-full border border-border/50 shrink-0" style={{ backgroundColor: item.color.hex }} />
+                            <span className="text-muted-foreground text-xs">{item.color.name} · {item.size} · ×{item.quantity}</span>
+                          </div>
                         </div>
-                        <span className="font-bold">${(item.product.price * item.quantity).toFixed(2)}</span>
+                        <span className="font-bold shrink-0">${(item.product.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                     <div className="border-t border-border pt-2 mt-2 space-y-1">

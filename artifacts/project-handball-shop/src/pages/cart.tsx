@@ -74,7 +74,7 @@ export default function Cart() {
                 <AnimatePresence>
                   {items.map((item, idx) => (
                     <motion.div
-                      key={`${item.product.id}-${item.size}`}
+                      key={`${item.product.id}-${item.size}-${item.color.name}`}
                       layout
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
@@ -95,12 +95,26 @@ export default function Cart() {
                           </Link>
                           <span className="font-black text-base shrink-0">${(item.product.price * item.quantity).toFixed(2)}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground font-medium mb-3">Size: {item.size} &nbsp;·&nbsp; ${item.product.price} each</p>
+
+                        {/* Color + Size badges */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-border shrink-0"
+                              style={{ backgroundColor: item.color.hex }}
+                            />
+                            <span className="text-xs text-muted-foreground font-medium">{item.color.name}</span>
+                          </div>
+                          <span className="text-muted-foreground/40 text-xs">·</span>
+                          <span className="text-xs text-muted-foreground font-medium">Size: {item.size}</span>
+                          <span className="text-muted-foreground/40 text-xs">·</span>
+                          <span className="text-xs text-muted-foreground">${item.product.price} each</span>
+                        </div>
 
                         <div className="mt-auto flex items-center justify-between">
                           <div className="flex items-center rounded-xl border border-border overflow-hidden h-9">
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.size, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.product.id, item.size, item.color.name, item.quantity - 1)}
                               className="w-9 h-full flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                               data-testid={`btn-decrease-${item.product.id}`}
                             >
@@ -110,7 +124,7 @@ export default function Cart() {
                               {item.quantity}
                             </div>
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.size, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.product.id, item.size, item.color.name, item.quantity + 1)}
                               className="w-9 h-full flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                               data-testid={`btn-increase-${item.product.id}`}
                             >
@@ -118,7 +132,7 @@ export default function Cart() {
                             </button>
                           </div>
                           <button
-                            onClick={() => removeItem(item.product.id, item.size)}
+                            onClick={() => removeItem(item.product.id, item.size, item.color.name)}
                             className="text-muted-foreground hover:text-destructive flex items-center gap-1.5 text-xs font-semibold transition-colors"
                             data-testid={`btn-remove-${item.product.id}`}
                           >
