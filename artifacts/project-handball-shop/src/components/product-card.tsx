@@ -19,7 +19,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [selectedSize, setSelectedSize] = useState<string>(product.sizes[0]);
 
   const handleQuickAdd = () => {
-    addItem(product, selectedSize, 1);
+    addItem(product, selectedSize, product.colors[0], 1);
     setIsQuickAddOpen(false);
   };
 
@@ -58,7 +58,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           {product.sizes.length === 1 ? (
             <Button 
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider"
-              onClick={() => addItem(product, product.sizes[0], 1)}
+              onClick={() => addItem(product, product.sizes[0], product.colors[0], 1)}
               data-testid={`button-add-${product.id}`}
             >
               Add to Cart

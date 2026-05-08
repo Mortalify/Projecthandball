@@ -18,7 +18,12 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState<ProductColor>(product?.colors[0] || { name: "Black", hex: "#1A1A1A" });
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
-  const [activeImg, setActiveImg] = useState(0);
+  const [activeImg, setActiveImg] = useState(() => {
+    if (!product) return 0;
+    const firstColor = product.colors[0];
+    const idx = firstColor ? product.colorImages[firstColor.name] : undefined;
+    return idx !== undefined ? idx : 0;
+  });
 
   if (!product) {
     return (
@@ -39,6 +44,14 @@ export default function ProductDetail() {
     addItem(product, selectedSize, selectedColor, quantity);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleColorSelect = (color: ProductColor) => {
+    setSelectedColor(color);
+    const imgIdx = product.colorImages[color.name];
+    if (imgIdx !== undefined) {
+      setActiveImg(imgIdx);
+    }
   };
 
   const increaseQuantity = () => setQuantity(q => q + 1);
@@ -76,11 +89,17 @@ export default function ProductDetail() {
                   New Arrival
                 </div>
               )}
+
+              {/* Color label overlay */}
+              <div className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                {selectedColor.name}
+              </div>
+
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeImg}
                   src={allImages[activeImg]}
-                  alt={`${product.name} - view ${activeImg + 1}`}
+                  alt={`${product.name} — ${selectedColor.name}`}
                   className="w-full h-full object-cover"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -89,7 +108,7 @@ export default function ProductDetail() {
                 />
               </AnimatePresence>
 
-              {/* Prev/Next arrows — only show if multiple images */}
+              {/* Prev/Next arrows */}
               {allImages.length > 1 && (
                 <>
                   <button
@@ -112,7 +131,7 @@ export default function ProductDetail() {
                       <button
                         key={i}
                         onClick={() => setActiveImg(i)}
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${i === activeImg ? "bg-white w-4" : "bg-white/50"}`}
+                        className={`h-1.5 rounded-full transition-all ${i === activeImg ? "bg-white w-4" : "bg-white/50 w-1.5"}`}
                         aria-label={`View ${i + 1}`}
                       />
                     ))}
@@ -121,20 +140,38 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {/* Thumbnail Strip */}
+            {/* Thumbnail Strip — grouped by color */}
             {allImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                {allImages.map((src, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImg(i)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                      i === activeImg ? "border-accent scale-105" : "border-transparent opacity-70 hover:opacity-100 hover:border-border"
-                    }`}
-                  >
-                    <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
+                {allImages.map((src, i) => {
+                  // Find which color this image belongs to
+                  const colorForThumb = Object.entries(product.colorImages).find(([, startIdx]) => {
+                    const entries = Object.values(product.colorImages).sort((a, b) => a - b);
+                    const thisStart = startIdx;
+                    const nextStarts = entries.filter(idx => idx > thisStart);
+                    const nextStart = nextStarts.length > 0 ? Math.min(...nextStarts) : allImages.length;
+                    return i >= thisStart && i < nextStart;
+                  })?.[0];
+
+                  const isActiveColorThumb = colorForThumb === selectedColor.name;
+                  const isCurrentThumb = i === activeImg;
+
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                        isCurrentThumb
+                          ? "border-accent scale-105 shadow-sm"
+                          : isActiveColorThumb
+                          ? "border-primary/40 opacity-90"
+                          : "border-transparent opacity-50 hover:opacity-80 hover:border-border"
+                      }`}
+                    >
+                      <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </motion.div>
@@ -158,43 +195,45 @@ export default function ProductDetail() {
 
             <div className="space-y-7 mb-10">
               {/* Color Picker */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <Label className="font-bold text-sm uppercase tracking-wider text-primary">
-                    Color
-                  </Label>
-                  <span className="text-sm font-semibold text-foreground">{selectedColor.name}</span>
+              {product.colors.length > 1 && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="font-bold text-sm uppercase tracking-wider text-primary">
+                      Color
+                    </Label>
+                    <span className="text-sm font-semibold text-foreground">{selectedColor.name}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {product.colors.map((color) => {
+                      const isSelected = selectedColor.name === color.name;
+                      const isLight = ["Light Blue", "Light Pink", "Safety Green", "Natural", "Sand", "White", "Athletic Heather", "Gold", "Mint", "Pink"].includes(color.name);
+                      return (
+                        <button
+                          key={color.name}
+                          title={color.name}
+                          onClick={() => handleColorSelect(color)}
+                          className={`relative w-9 h-9 rounded-full transition-all duration-150 focus:outline-none ${
+                            isSelected
+                              ? "ring-2 ring-offset-2 ring-primary scale-110"
+                              : "hover:scale-105 ring-1 ring-border"
+                          }`}
+                          style={{ backgroundColor: color.hex }}
+                          aria-label={color.name}
+                          data-testid={`color-${color.name.replace(/\s+/g, "-").toLowerCase()}`}
+                        >
+                          {isSelected && (
+                            <Check
+                              className="h-4 w-4 absolute inset-0 m-auto"
+                              style={{ color: isLight ? "#002151" : "#ffffff" }}
+                              strokeWidth={3}
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2.5">
-                  {product.colors.map((color) => {
-                    const isSelected = selectedColor.name === color.name;
-                    const isLight = ["Light Blue", "Light Pink", "Safety Green"].includes(color.name);
-                    return (
-                      <button
-                        key={color.name}
-                        title={color.name}
-                        onClick={() => setSelectedColor(color)}
-                        className={`relative w-9 h-9 rounded-full transition-all duration-150 focus:outline-none ${
-                          isSelected
-                            ? "ring-2 ring-offset-2 ring-primary scale-110"
-                            : "hover:scale-105 ring-1 ring-border"
-                        }`}
-                        style={{ backgroundColor: color.hex }}
-                        aria-label={color.name}
-                        data-testid={`color-${color.name.replace(/\s+/g, "-").toLowerCase()}`}
-                      >
-                        {isSelected && (
-                          <Check
-                            className="h-4 w-4 absolute inset-0 m-auto"
-                            style={{ color: isLight ? "#002151" : "#ffffff" }}
-                            strokeWidth={3}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              )}
 
               {/* Size Selector */}
               <div>
