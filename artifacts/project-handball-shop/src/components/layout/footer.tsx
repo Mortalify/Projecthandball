@@ -51,7 +51,7 @@ export function Footer() {
             <h3 className="font-display font-bold text-sm uppercase tracking-widest mb-5 text-primary-foreground/40">Support</h3>
             <ul className="space-y-3 text-sm">
               <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">FAQ</a></li>
-              <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">Shipping & Returns</a></li>
+              <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">Shipping Info</a></li>
               <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">Contact Us</a></li>
               <li><a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">Size Guide</a></li>
             </ul>

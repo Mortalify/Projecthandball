@@ -22,7 +22,7 @@ const ROLLIE_RESPONSES: { keywords: string[]; reply: string }[] = [
   },
   {
     keywords: ["return", "refund", "exchange", "wrong size"],
-    reply: "We want you to love your gear! Contact us within 30 days of delivery for exchanges. Items must be unworn and unwashed. Reach out via Instagram @ProjectHandball and we'll sort it out.",
+    reply: "Hit us up on Instagram @ProjectHandball and we'll take care of you. Our team is always around.",
   },
   {
     keywords: ["discount", "promo", "code", "coupon", "free"],

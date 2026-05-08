@@ -162,7 +162,6 @@ export default function ProductDetail() {
 
             <div className="mt-8 space-y-4 pt-8 border-t border-primary/10 text-sm text-muted-foreground">
               <p className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> Free shipping on orders over $150</p>
-              <p className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> 30-day return policy</p>
               <p className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> Secure checkout</p>
             </div>
           </motion.div>
