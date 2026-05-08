@@ -111,13 +111,14 @@ export default async function handler(req: any, res: any) {
         if (variantId !== null) {
           cartMeta.push({ p: item.productId, v: variantId, q: item.quantity });
         }
+        const isValidImage = item.image?.startsWith("https://");
         return {
           price_data: {
             currency: "usd",
             unit_amount: Math.round(item.price * 100),
             product_data: {
               name: `${item.name}${item.colorName ? ` — ${item.colorName}` : ""}${item.sizeName ? ` / ${item.sizeName}` : ""}`,
-              images: item.image ? [item.image] : [],
+              images: isValidImage ? [item.image!] : [],
             },
           },
           quantity: item.quantity,
