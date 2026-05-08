@@ -196,17 +196,52 @@ export default function Home() {
         </div>
 
         {/* 8-photo community grid */}
-        <div className="px-4 max-w-5xl mx-auto">
+        <div className="px-4 max-w-5xl mx-auto space-y-2 md:space-y-3">
+          {/* Row 1: wide landscape + 2 portrait squares */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+            {/* Rooftop duo — landscape, spans 2 cols */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0 }}
+              className="relative group overflow-hidden rounded-2xl bg-muted col-span-2 aspect-video"
+            >
+              <img src="/images/community/rooftop-duo.jpg" alt="Two players repping PH on the rooftop" className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <img src={logoSrc} alt="" className="h-7 w-7 object-contain" />
+              </div>
+            </motion.div>
             {[
-              { src: "/images/community/rooftop-duo.jpg", alt: "Two players repping PH on the rooftop", tall: true },
-              { src: "/images/community/purple-set.jpg", alt: "Player in purple PH set on the court", tall: false },
-              { src: "/images/community/supporter-navy.jpg", alt: "Fan in navy Project Handball hoodie", tall: false },
-              { src: "/images/community/couple-hoodies.jpg", alt: "Couple in Project Handball hoodies", tall: false },
-              { src: "/images/community/got-next-hoodie.jpg", alt: "I Got Next hoodie back shot", tall: false },
-              { src: "/images/community/mirror-set.jpg", alt: "Mirror selfie in full PH set", tall: false },
-              { src: "/images/community/kids-hoodie.jpg", alt: "Kids wearing Project Handball hoodies", tall: false },
-              { src: "/images/community/too-fresh.jpg", alt: "Community member rocking the hoodie", tall: false },
+              { src: "/images/community/purple-set.jpg", alt: "Player in purple PH set" },
+              { src: "/images/community/supporter-navy.jpg", alt: "Fan in navy Project Handball hoodie" },
+            ].map((photo, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: (i + 1) * 0.07 }}
+                className="relative group overflow-hidden rounded-2xl bg-muted aspect-square"
+              >
+                <img src={photo.src} alt={photo.alt} className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <img src={logoSrc} alt="" className="h-7 w-7 object-contain" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Row 2: 5 portrait squares in 4+1 layout */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
+            {[
+              { src: "/images/community/couple-hoodies.jpg", alt: "Couple in Project Handball hoodies" },
+              { src: "/images/community/got-next-hoodie.jpg", alt: "I Got Next hoodie back shot" },
+              { src: "/images/community/mirror-set.jpg", alt: "Mirror selfie in full PH set" },
+              { src: "/images/community/kids-hoodie.jpg", alt: "Kids wearing Project Handball hoodies" },
+              { src: "/images/community/too-fresh.jpg", alt: "Community member rocking the hoodie" },
             ].map((photo, i) => (
               <motion.div
                 key={i}
@@ -214,15 +249,11 @@ export default function Home() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07 }}
-                className={`relative group overflow-hidden rounded-2xl bg-muted ${i === 0 ? "row-span-2" : "aspect-square"}`}
+                className="relative group overflow-hidden rounded-2xl bg-muted aspect-square"
               >
-                <img
-                  src={photo.src}
-                  alt={photo.alt}
-                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
-                <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-400">
+                <img src={photo.src} alt={photo.alt} className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <img src={logoSrc} alt="" className="h-7 w-7 object-contain" />
                 </div>
               </motion.div>
