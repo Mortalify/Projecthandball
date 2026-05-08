@@ -27,9 +27,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem("ph-cart");
-      if (savedCart) setItems(JSON.parse(savedCart));
-    } catch (e) {
-      // ignore
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed)) {
+          const valid = parsed.filter(
+            (item: any) =>
+              item &&
+              typeof item === "object" &&
+              item.product &&
+              typeof item.product.id === "string" &&
+              item.color &&
+              typeof item.color.name === "string" &&
+              typeof item.color.hex === "string" &&
+              typeof item.size === "string" &&
+              typeof item.quantity === "number",
+          );
+          setItems(valid);
+        }
+      }
+    } catch {
+      localStorage.removeItem("ph-cart");
     }
   }, []);
 

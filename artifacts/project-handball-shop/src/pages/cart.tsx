@@ -103,7 +103,7 @@ export default function Cart() {
               <AnimatePresence>
                 {items.map((item, idx) => (
                   <motion.div
-                    key={`${item.product.id}-${item.size}-${item.color.name}`}
+                    key={`${item.product?.id ?? idx}-${item.size}-${item.color?.name}`}
                     layout
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -111,40 +111,40 @@ export default function Cart() {
                     transition={{ duration: 0.25 }}
                     className={`flex gap-5 p-5 ${idx < items.length - 1 ? "border-b border-border/50" : ""}`}
                   >
-                    <Link href={`/product/${item.product.id}`} className="w-20 h-24 shrink-0 rounded-xl overflow-hidden bg-muted block">
-                      <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
+                    <Link href={`/product/${item.product?.id}`} className="w-20 h-24 shrink-0 rounded-xl overflow-hidden bg-muted block">
+                      <img src={item.product?.image} alt={item.product?.name} className="w-full h-full object-cover" />
                     </Link>
 
                     <div className="flex flex-col flex-grow min-w-0">
                       <div className="flex justify-between items-start gap-2 mb-1">
-                        <Link href={`/product/${item.product.id}`}>
+                        <Link href={`/product/${item.product?.id}`}>
                           <h3 className="font-display font-black text-sm uppercase tracking-wide text-primary hover:text-accent transition-colors leading-tight">
-                            {item.product.name}
+                            {item.product?.name}
                           </h3>
                         </Link>
-                        <span className="font-black text-base shrink-0">${(item.product.price * item.quantity).toFixed(2)}</span>
+                        <span className="font-black text-base shrink-0">${((item.product?.price ?? 0) * item.quantity).toFixed(2)}</span>
                       </div>
 
                       <div className="flex items-center gap-2 mb-3">
                         <div className="flex items-center gap-1.5">
                           <span
                             className="w-3.5 h-3.5 rounded-full border border-border shrink-0"
-                            style={{ backgroundColor: item.color.hex }}
+                            style={{ backgroundColor: item.color?.hex }}
                           />
-                          <span className="text-xs text-muted-foreground font-medium">{item.color.name}</span>
+                          <span className="text-xs text-muted-foreground font-medium">{item.color?.name}</span>
                         </div>
                         <span className="text-muted-foreground/40 text-xs">·</span>
                         <span className="text-xs text-muted-foreground font-medium">Size: {item.size}</span>
                         <span className="text-muted-foreground/40 text-xs">·</span>
-                        <span className="text-xs text-muted-foreground">${item.product.price} each</span>
+                        <span className="text-xs text-muted-foreground">${item.product?.price ?? 0} each</span>
                       </div>
 
                       <div className="mt-auto flex items-center justify-between">
                         <div className="flex items-center rounded-xl border border-border overflow-hidden h-9">
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.size, item.color.name, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.product?.id ?? "", item.size, item.color?.name ?? "", item.quantity - 1)}
                             className="w-9 h-full flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                            data-testid={`btn-decrease-${item.product.id}`}
+                            data-testid={`btn-decrease-${item.product?.id}`}
                           >
                             <Minus className="h-3 w-3" />
                           </button>
@@ -152,17 +152,17 @@ export default function Cart() {
                             {item.quantity}
                           </div>
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.size, item.color.name, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.product?.id ?? "", item.size, item.color?.name ?? "", item.quantity + 1)}
                             className="w-9 h-full flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                            data-testid={`btn-increase-${item.product.id}`}
+                            data-testid={`btn-increase-${item.product?.id}`}
                           >
                             <Plus className="h-3 w-3" />
                           </button>
                         </div>
                         <button
-                          onClick={() => removeItem(item.product.id, item.size, item.color.name)}
+                          onClick={() => removeItem(item.product?.id ?? "", item.size, item.color?.name ?? "")}
                           className="text-muted-foreground hover:text-destructive flex items-center gap-1.5 text-xs font-semibold transition-colors"
-                          data-testid={`btn-remove-${item.product.id}`}
+                          data-testid={`btn-remove-${item.product?.id}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           Remove

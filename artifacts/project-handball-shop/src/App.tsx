@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { RollieChatbot } from "@/components/rollie-chatbot";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
@@ -36,6 +37,7 @@ function Router() {
 
 function App() {
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <CartProvider>
@@ -55,6 +57,7 @@ function App() {
         </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
