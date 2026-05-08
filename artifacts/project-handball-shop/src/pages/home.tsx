@@ -15,7 +15,7 @@ export default function Home() {
       <section className="relative h-[90vh] w-full overflow-hidden bg-primary">
         <div className="absolute inset-0">
           <img
-            src="/images/hero.png"
+            src="/images/hero.jpg"
             alt="Handball players on outdoor court"
             className="w-full h-full object-cover opacity-50"
           />
