@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { tournaments, type Tournament } from "@/lib/tournaments";
 import { useAuth } from "@/contexts/auth-context";
@@ -17,6 +18,55 @@ import {
   MapPin, Calendar, Users, Trophy, Crown, Star,
   Shield, User, LogIn, LogOut, Check, X
 } from "lucide-react";
+
+// ─── S Rank Badge with portal tooltip ───────────────────────────────────────
+function SRankBadge() {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  const show = () => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ top: r.top - 8, left: r.left + r.width / 2 });
+    }
+    setVisible(true);
+  };
+  const hide = () => setVisible(false);
+
+  return (
+    <>
+      <span
+        ref={ref}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+        className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-yellow-500/10 text-yellow-600 border border-yellow-500/30 cursor-help select-none"
+      >
+        <Crown className="h-3 w-3" /> S Rank Eligible
+      </span>
+      {visible && createPortal(
+        <div
+          className="fixed z-[9999] pointer-events-none"
+          style={{ top: pos.top, left: pos.left, transform: "translate(-50%, -100%)" }}
+        >
+          <div className="w-80 rounded-xl bg-primary px-4 py-3.5 text-xs text-white shadow-2xl leading-relaxed mb-2">
+            <strong className="block text-yellow-400 font-bold uppercase tracking-wider text-[10px] mb-1.5">What is S Rank?</strong>
+            S Rank is a new tier above A — created because the skill gap among today's top players has grown so wide that A alone no longer captures it. Where A was once the ceiling, S exists to separate the best from the best.
+            <span className="block mt-2 pt-2 border-t border-white/20 text-yellow-200/90">
+              <strong className="text-yellow-300">S Players get exclusive perks:</strong> discounts on Project Handball merch and reduced entry fees on future tournament registrations.
+            </span>
+          </div>
+          <div className="flex justify-center">
+            <span className="border-8 border-transparent border-t-primary block" />
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
 
 // ─── Rank config ────────────────────────────────────────────────────────────
 const RANKS = [
@@ -112,18 +162,7 @@ function TournamentCard({ tournament, onRegister }: { tournament: Tournament; on
           <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-muted text-muted-foreground border border-border">
             {tournament.type === "doubles" ? "Doubles" : "Singles"}
           </span>
-          {tournament.isPaid && (
-            <span className="relative group inline-flex">
-              <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-yellow-500/10 text-yellow-600 border border-yellow-500/30 cursor-help">
-                <Crown className="h-3 w-3" /> S Rank Eligible
-              </span>
-              <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-72 rounded-xl bg-primary px-4 py-3 text-xs text-white shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 normal-case tracking-normal font-normal leading-relaxed">
-                <strong className="block text-yellow-400 font-bold uppercase tracking-wider text-[10px] mb-1">What is S Rank?</strong>
-                S Rank is a new tier above A — introduced because the gap in skill among today's top players has grown so wide that A alone no longer captures it. Where A was once the ceiling, S exists to separate the best from the best. Only paid tournament winners earn it.
-                <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-primary" />
-              </span>
-            </span>
-          )}
+          {tournament.isPaid && <SRankBadge />}
         </div>
 
         <h3 className="font-display text-xl font-black uppercase tracking-tight text-primary mb-1">{tournament.name}</h3>
