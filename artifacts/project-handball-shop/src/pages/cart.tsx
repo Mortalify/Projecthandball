@@ -34,11 +34,12 @@ export default function Cart() {
           })),
         }),
       });
-      if (!res.ok) throw new Error("Failed to start checkout");
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch {
-      setError("Something went wrong. Please try again.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to start checkout");
+      if (!data.url) throw new Error("No checkout URL returned");
+      window.location.href = data.url;
+    } catch (err: any) {
+      setError(err?.message ?? "Something went wrong. Please try again.");
       setLoading(false);
     }
   };
