@@ -195,22 +195,39 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-1 md:gap-2 px-4 max-w-4xl mx-auto">
-          {["/images/court-1.png", "/images/court-2.png", "/images/court-3.png"].map((src, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="aspect-square relative group overflow-hidden rounded-xl"
-            >
-              <img src={src} alt="On the court" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-              <div className="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                <img src={logoSrc} alt="" className="h-12 w-12 object-contain opacity-90" />
-              </div>
-            </motion.div>
-          ))}
+        {/* 8-photo community grid */}
+        <div className="px-4 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+            {[
+              { src: "/images/community/rooftop-duo.jpg", alt: "Two players repping PH on the rooftop", tall: true },
+              { src: "/images/community/purple-set.jpg", alt: "Player in purple PH set on the court", tall: false },
+              { src: "/images/community/supporter-navy.jpg", alt: "Fan in navy Project Handball hoodie", tall: false },
+              { src: "/images/community/couple-hoodies.jpg", alt: "Couple in Project Handball hoodies", tall: false },
+              { src: "/images/community/got-next-hoodie.jpg", alt: "I Got Next hoodie back shot", tall: false },
+              { src: "/images/community/mirror-set.jpg", alt: "Mirror selfie in full PH set", tall: false },
+              { src: "/images/community/kids-hoodie.jpg", alt: "Kids wearing Project Handball hoodies", tall: false },
+              { src: "/images/community/too-fresh.jpg", alt: "Community member rocking the hoodie", tall: false },
+            ].map((photo, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className={`relative group overflow-hidden rounded-2xl bg-muted ${i === 0 ? "row-span-2" : "aspect-square"}`}
+              >
+                <img
+                  src={photo.src}
+                  alt={photo.alt}
+                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-400">
+                  <img src={logoSrc} alt="" className="h-7 w-7 object-contain" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
