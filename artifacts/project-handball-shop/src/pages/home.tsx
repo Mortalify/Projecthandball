@@ -59,7 +59,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-white/70 mb-10 max-w-lg leading-relaxed font-medium">
-              Premium apparel engineered for the streets. We create quality handball gear for players who leave it all on the court.
+              Premium apparel engineered for the community. We create quality handball gear for players who give their all on and off the court.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/shop">
