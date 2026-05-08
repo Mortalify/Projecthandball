@@ -262,7 +262,7 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
             )}
             {tournament.isPaid && (
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-sm text-yellow-700">
-                <strong>$10 entry fee</strong> will be collected at check-in on the day of the tournament.
+                <strong>${tournament.entryFee} entry fee</strong> will be collected at check-in on the day of the tournament.
               </div>
             )}
             {error && (
