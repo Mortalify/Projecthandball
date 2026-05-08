@@ -5,8 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/contexts/cart-context";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { RollieChatbot } from "@/components/rollie-chatbot";
 
-// Pages
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
@@ -40,6 +40,7 @@ function App() {
               </main>
               <Footer />
             </div>
+            <RollieChatbot />
           </WouterRouter>
           <Toaster />
         </CartProvider>

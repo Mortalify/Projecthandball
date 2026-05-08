@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { products } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Star, Truck, ShieldCheck } from "lucide-react";
+import logoSrc from "@assets/project_handball_logo_1778253221361.png";
 
 export default function Home() {
   const featuredProducts = products.slice(0, 3);
@@ -11,66 +12,124 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[85vh] w-full overflow-hidden bg-primary">
+      <section className="relative h-[90vh] w-full overflow-hidden bg-primary">
         <div className="absolute inset-0">
-          <img 
-            src="/images/hero.png" 
-            alt="Handball players on outdoor court" 
-            className="w-full h-full object-cover opacity-60"
+          <img
+            src="/images/hero.png"
+            alt="Handball players on outdoor court"
+            className="w-full h-full object-cover opacity-50"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/70 to-primary/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent" />
         </div>
-        
-        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-24 md:pb-32">
+
+        {/* Floating logo watermark */}
+        <div className="absolute top-8 right-8 opacity-10 hidden lg:block">
+          <img src={logoSrc} alt="" className="h-48 w-48 object-contain" />
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-center pb-10">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            className="max-w-2xl"
           >
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-black text-white leading-none mb-6 tracking-tight uppercase">
-              Built for the <br/><span className="text-accent">Concrete.</span>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="flex items-center gap-3 mb-6"
+            >
+              <img src={logoSrc} alt="Project Handball Logo" className="h-14 w-14 object-contain" />
+              <div className="h-px flex-1 max-w-[80px] bg-accent/50" />
+              <span className="text-accent font-bold text-xs uppercase tracking-[0.3em]">Official Store</span>
+            </motion.div>
+
+            <h1 className="font-display text-6xl md:text-7xl lg:text-8xl font-black text-white leading-[0.95] mb-6 tracking-tight uppercase">
+              Built for the{" "}
+              <span className="text-accent relative">
+                Concrete.
+                <motion.span
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
+                  className="absolute -bottom-2 left-0 h-1 w-full bg-accent origin-left block"
+                />
+              </span>
             </h1>
-            <p className="text-lg md:text-xl text-secondary/90 mb-8 max-w-xl font-medium">
+            <p className="text-lg md:text-xl text-white/70 mb-10 max-w-lg leading-relaxed font-medium">
               Premium apparel engineered for the streets. We create quality handball gear for players who leave it all on the court.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/shop">
-                <Button size="lg" className="bg-accent hover:bg-accent/90 text-white font-bold text-lg px-8 py-6 rounded-none uppercase tracking-widest border-2 border-accent" data-testid="button-hero-shop">
-                  Shop Now
+                <Button size="lg" className="bg-accent hover:bg-accent/90 text-white font-bold text-sm px-8 h-14 rounded-xl uppercase tracking-widest shadow-lg shadow-accent/30" data-testid="button-hero-shop">
+                  Shop Now <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link href="/shop?category=Tees">
-                <Button variant="outline" size="lg" className="bg-transparent border-white text-white hover:bg-white hover:text-primary font-bold text-lg px-8 py-6 rounded-none uppercase tracking-widest" data-testid="button-hero-tees">
+                <Button variant="outline" size="lg" className="bg-transparent border-white/30 text-white hover:bg-white/10 font-bold text-sm px-8 h-14 rounded-xl uppercase tracking-widest" data-testid="button-hero-tees">
                   View Tees
                 </Button>
               </Link>
             </div>
           </motion.div>
         </div>
+
+        {/* Bottom scroll hint */}
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/30"
+        >
+          <div className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent" />
+          <span className="text-[10px] uppercase tracking-widest font-medium">Scroll</span>
+        </motion.div>
+      </section>
+
+      {/* Feature bar */}
+      <section className="bg-accent py-3">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-10 text-white text-xs font-bold uppercase tracking-widest">
+            <div className="flex items-center gap-2">
+              <Truck className="h-4 w-4" />
+              <span>Free Shipping Over $75</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              <span>Premium Court Quality</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-white/30" />
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Handcrafted with Care</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Featured Products */}
-      <section className="py-20 md:py-32 bg-background">
+      <section className="py-24 md:py-32 bg-background">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b-2 border-primary/10 pb-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-14 gap-4">
             <div>
-              <motion.h2 
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+              <p className="text-accent font-bold text-xs uppercase tracking-[0.3em] mb-2">New Arrivals</p>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-4xl md:text-5xl font-display font-bold uppercase tracking-tight text-primary"
+                className="font-display text-4xl md:text-5xl font-black uppercase tracking-tight text-primary leading-tight"
               >
                 Latest Drops
               </motion.h2>
-              <p className="text-muted-foreground mt-2 font-medium">The newest gear hitting the streets.</p>
             </div>
-            <Link href="/shop" className="group flex items-center gap-2 font-bold uppercase tracking-wider text-accent hover:text-primary transition-colors mt-4 md:mt-0">
-              View All <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            <Link href="/shop" className="group flex items-center gap-2 font-bold uppercase tracking-widest text-sm text-accent hover:text-primary transition-colors">
+              View All Gear <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {featuredProducts.map((product, index) => (
               <ProductCard key={product.id} product={product} index={index} />
             ))}
@@ -78,98 +137,119 @@ export default function Home() {
         </div>
       </section>
 
-      {/* As Seen On Court - Lifestyle Gallery */}
-      <section className="py-20 bg-primary text-white overflow-hidden">
-        <div className="container mx-auto px-4 mb-12 text-center">
-          <motion.h2 
+      {/* Brand Story — Logo Feature */}
+      <section className="py-20 bg-primary overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="lg:w-1/3 flex justify-center shrink-0"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-accent/20 blur-3xl scale-125" />
+                <img src={logoSrc} alt="Project Handball" className="relative h-56 w-56 md:h-72 md:w-72 object-contain drop-shadow-2xl" />
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="lg:w-2/3 text-white"
+            >
+              <p className="text-accent font-bold text-xs uppercase tracking-[0.3em] mb-4">Our Story</p>
+              <h2 className="font-display text-4xl md:text-5xl font-black uppercase tracking-tight leading-tight mb-6">
+                Repping the Court.<br />
+                <span className="text-accent">Always.</span>
+              </h2>
+              <p className="text-white/70 text-lg leading-relaxed mb-8 max-w-xl">
+                Project Handball was born on the concrete. We saw a culture with no brand to call its own — so we built one. Every piece of gear we make is a rep for the sport, the community, and the grind.
+              </p>
+              <Link href="/shop">
+                <Button className="bg-accent hover:bg-accent/90 text-white font-bold uppercase tracking-widest h-12 px-8 rounded-xl" data-testid="button-story-shop">
+                  Shop the Collection
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* As Seen On Court */}
+      <section className="py-20 bg-background overflow-hidden">
+        <div className="container mx-auto px-4 mb-10">
+          <p className="text-accent font-bold text-xs uppercase tracking-[0.3em] mb-2 text-center">Community</p>
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-display font-bold uppercase tracking-tight mb-4"
+            className="font-display text-4xl md:text-5xl font-black uppercase tracking-tight text-primary text-center mb-3"
           >
             As Seen On Court
           </motion.h2>
-          <p className="text-secondary/80 max-w-2xl mx-auto font-medium">
+          <p className="text-muted-foreground text-center max-w-md mx-auto font-medium">
             Tag us <span className="text-accent font-bold">@ProjectHandball</span> to be featured.
           </p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 px-4 md:px-0">
-          <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="w-full md:w-1/3 aspect-square relative group overflow-hidden"
-          >
-            <img src="/images/court-3.png" alt="Wide shot of court" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-colors duration-500" />
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="w-full md:w-1/3 aspect-square relative group overflow-hidden"
-          >
-            <img src="/images/classic-tee.png" alt="Classic tee action" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-colors duration-500" />
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="w-full md:w-1/3 aspect-square relative group overflow-hidden"
-          >
-            <img src="/images/shorts.png" alt="Shorts action" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-colors duration-500" />
-          </motion.div>
+        <div className="grid grid-cols-3 gap-1 md:gap-2 px-4 max-w-4xl mx-auto">
+          {["/images/court-1.png", "/images/court-2.png", "/images/court-3.png"].map((src, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="aspect-square relative group overflow-hidden rounded-xl"
+            >
+              <img src={src} alt="On the court" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                <img src={logoSrc} alt="" className="h-12 w-12 object-contain opacity-90" />
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* Brand Value Props */}
-      <section className="py-24 bg-background border-t">
+      {/* Value Props */}
+      <section className="py-20 bg-muted/50 border-t border-border/50">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex flex-col items-center"
-            >
-              <div className="w-16 h-16 bg-secondary/30 rounded-full flex items-center justify-center mb-6 text-primary">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-              </div>
-              <h3 className="font-display font-bold text-xl uppercase mb-3">Premium Quality</h3>
-              <p className="text-muted-foreground">Built to withstand the toughest concrete courts and intense play.</p>
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="flex flex-col items-center"
-            >
-              <div className="w-16 h-16 bg-secondary/30 rounded-full flex items-center justify-center mb-6 text-primary">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-              </div>
-              <h3 className="font-display font-bold text-xl uppercase mb-3">Free Shipping</h3>
-              <p className="text-muted-foreground">On all domestic orders over $75. Use code SHIRT at checkout.</p>
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-col items-center"
-            >
-              <div className="w-16 h-16 bg-secondary/30 rounded-full flex items-center justify-center mb-6 text-primary">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-              </div>
-              <h3 className="font-display font-bold text-xl uppercase mb-3">Secure Checkout</h3>
-              <p className="text-muted-foreground">Shop with confidence. Your payment information is processed securely.</p>
-            </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Star className="h-6 w-6" />,
+                title: "Premium Quality",
+                desc: "Built to withstand the toughest concrete courts and the most intense play."
+              },
+              {
+                icon: <Truck className="h-6 w-6" />,
+                title: "Free Shipping",
+                desc: "On all domestic orders over $75. Use code SHIRT at checkout."
+              },
+              {
+                icon: <ShieldCheck className="h-6 w-6" />,
+                title: "Handcrafted",
+                desc: "Every order is made with care by our handball artisans. Worth the wait."
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex flex-col items-center text-center p-8 rounded-2xl bg-background border border-border/50 shadow-sm"
+              >
+                <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center mb-5 text-accent">
+                  {item.icon}
+                </div>
+                <h3 className="font-display font-black text-lg uppercase tracking-wide mb-3 text-primary">{item.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
