@@ -113,8 +113,15 @@ function TournamentCard({ tournament, onRegister }: { tournament: Tournament; on
             {tournament.type === "doubles" ? "Doubles" : "Singles"}
           </span>
           {tournament.isPaid && (
-            <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-yellow-500/10 text-yellow-600 border border-yellow-500/30">
-              <Crown className="h-3 w-3" /> S Rank Eligible
+            <span className="relative group inline-flex">
+              <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-yellow-500/10 text-yellow-600 border border-yellow-500/30 cursor-help">
+                <Crown className="h-3 w-3" /> S Rank Eligible
+              </span>
+              <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-72 rounded-xl bg-primary px-4 py-3 text-xs text-white shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 normal-case tracking-normal font-normal leading-relaxed">
+                <strong className="block text-yellow-400 font-bold uppercase tracking-wider text-[10px] mb-1">What is S Rank?</strong>
+                S Rank is a new tier above A — introduced because the gap in skill among today's top players has grown so wide that A alone no longer captures it. Where A was once the ceiling, S exists to separate the best from the best. Only paid tournament winners earn it.
+                <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-primary" />
+              </span>
             </span>
           )}
         </div>
