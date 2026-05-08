@@ -244,7 +244,7 @@ export default function Home() {
               {
                 icon: <Truck className="h-6 w-6" />,
                 title: "Free Shipping",
-                desc: "On all domestic orders over $150. Use code SHIRT at checkout."
+                desc: "On all domestic orders over $150. Use code ACESERVE at checkout."
               },
               {
                 icon: <ShieldCheck className="h-6 w-6" />,

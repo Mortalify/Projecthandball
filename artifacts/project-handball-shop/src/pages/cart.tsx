@@ -67,7 +67,7 @@ export default function Cart() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">Use code <span className="font-bold text-accent">SHIRT</span> at checkout</p>
+                <p className="text-xs text-muted-foreground mt-2">Use code <span className="font-bold text-accent">ACESERVE</span> at checkout</p>
               </div>
 
               <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">

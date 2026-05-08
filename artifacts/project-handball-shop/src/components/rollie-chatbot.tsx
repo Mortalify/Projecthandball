@@ -18,7 +18,7 @@ const ROLLIE_RESPONSES: { keywords: string[]; reply: string }[] = [
   },
   {
     keywords: ["shipping", "delivery", "ship", "how long", "arrive", "when"],
-    reply: "All orders are handcrafted with care — please allow up to 30 days for delivery. Orders over $150 ship free with code SHIRT. We ship domestically and are working on international shipping.",
+    reply: "All orders are handcrafted with care — please allow up to 30 days for delivery. Orders over $150 ship free with code ACESERVE. We ship domestically and are working on international shipping.",
   },
   {
     keywords: ["return", "refund", "exchange", "wrong size"],
@@ -26,7 +26,7 @@ const ROLLIE_RESPONSES: { keywords: string[]; reply: string }[] = [
   },
   {
     keywords: ["discount", "promo", "code", "coupon", "free"],
-    reply: "You're in luck — use code SHIRT at checkout for free shipping on orders over $150! Follow us on Instagram and TikTok @ProjectHandball to catch future drops and giveaways.",
+    reply: "You're in luck — use code ACESERVE at checkout for free shipping on orders over $150! Follow us on Instagram and TikTok @ProjectHandball to catch future drops and giveaways.",
   },
   {
     keywords: ["hoodie", "sweatshirt", "pullover"],
