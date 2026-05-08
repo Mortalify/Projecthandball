@@ -17,7 +17,7 @@ export function Navbar() {
   return (
     <>
       <div className="bg-primary text-primary-foreground text-center py-2 text-xs font-medium tracking-widest uppercase">
-        Free Shipping on Orders Over $75 &nbsp;|&nbsp; Use Code: <span className="font-bold text-accent">SHIRT</span>
+        Free Shipping on Orders Over $150 &nbsp;|&nbsp; Use Code: <span className="font-bold text-accent">SHIRT</span>
       </div>
 
       <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm">

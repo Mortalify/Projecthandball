@@ -40,7 +40,7 @@ export function CheckoutModal({ open, onClose, items, subtotal, onConfirmed }: C
     address: "", city: "", state: "", zip: "", country: "United States",
   });
 
-  const isFreeShipping = subtotal >= 75;
+  const isFreeShipping = subtotal >= 150;
   const shipping = isFreeShipping ? 0 : 8.99;
   const total = subtotal + shipping;
 

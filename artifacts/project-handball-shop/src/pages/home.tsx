@@ -93,7 +93,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-10 text-white text-xs font-bold uppercase tracking-widest">
             <div className="flex items-center gap-2">
               <Truck className="h-4 w-4" />
-              <span>Free Shipping Over $75</span>
+              <span>Free Shipping Over $150</span>
             </div>
             <div className="hidden sm:block w-px h-4 bg-white/30" />
             <div className="flex items-center gap-2">
@@ -244,7 +244,7 @@ export default function Home() {
               {
                 icon: <Truck className="h-6 w-6" />,
                 title: "Free Shipping",
-                desc: "On all domestic orders over $75. Use code SHIRT at checkout."
+                desc: "On all domestic orders over $150. Use code SHIRT at checkout."
               },
               {
                 icon: <ShieldCheck className="h-6 w-6" />,
@@ -264,7 +264,7 @@ export default function Home() {
                   {item.icon}
                 </div>
                 <h3 className="font-display font-black text-lg uppercase tracking-wide mb-3 text-primary">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>

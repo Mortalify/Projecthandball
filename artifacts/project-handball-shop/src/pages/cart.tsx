@@ -10,9 +10,9 @@ export default function Cart() {
   const { items, updateQuantity, removeItem, subtotal, clearCart } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const isFreeShipping = subtotal >= 75;
-  const shippingProgress = Math.min((subtotal / 75) * 100, 100);
-  const amountToFreeShipping = (75 - subtotal).toFixed(2);
+  const isFreeShipping = subtotal >= 150;
+  const shippingProgress = Math.min((subtotal / 150) * 100, 100);
+  const amountToFreeShipping = (150 - subtotal).toFixed(2);
 
   if (items.length === 0) {
     return (
