@@ -16,7 +16,7 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Home", active: location === "/" },
-    { href: "/tournaments", label: "Tournaments", active: location === "/tournaments" },
+    { href: "/tournaments", label: "Tournaments", active: location === "/tournaments", beta: true },
     { href: "/shop", label: "Shop All", active: location === "/shop" || location.startsWith("/product") },
   ];
 
@@ -37,10 +37,15 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-semibold uppercase tracking-widest transition-colors hover:text-accent relative group ${link.active ? "text-accent" : "text-foreground"}`}
+                  className={`text-sm font-semibold uppercase tracking-widest transition-colors hover:text-accent relative group inline-flex items-center gap-1.5 ${link.active ? "text-accent" : "text-foreground"}`}
                   data-testid={`link-nav-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
                 >
                   {link.label}
+                  {link.beta && (
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-accent/15 text-accent border border-accent/30 px-1.5 py-0.5 rounded-full leading-none">
+                      Beta
+                    </span>
+                  )}
                   <span className={`absolute -bottom-1 left-0 h-0.5 bg-accent transition-all duration-300 ${link.active ? "w-full" : "w-0 group-hover:w-full"}`} />
                 </Link>
               ))}
@@ -89,9 +94,14 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={closeMenu}
-                  className={`py-3 px-4 text-base font-bold uppercase tracking-widest rounded-lg transition-colors ${link.active ? "text-accent bg-accent/10" : "hover:bg-muted"}`}
+                  className={`py-3 px-4 text-base font-bold uppercase tracking-widest rounded-lg transition-colors inline-flex items-center gap-2 ${link.active ? "text-accent bg-accent/10" : "hover:bg-muted"}`}
                 >
                   {link.label}
+                  {link.beta && (
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-accent/15 text-accent border border-accent/30 px-1.5 py-0.5 rounded-full leading-none">
+                      Beta
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>
