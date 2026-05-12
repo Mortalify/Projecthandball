@@ -113,6 +113,8 @@ const BLANK_CLINIC: Omit<ClinicEvent, "id" | "slug"> = {
   age_group: "youth", description: "", max_participants: 24, status: "upcoming",
 };
 
+const ADMIN_ALLOWED_EMAILS = ["shianrdenton@gmail.com", "victoriousparks@gmail.com"];
+
 const RANK_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
   s:        { label: "S Rank", color: "text-purple-700", bg: "bg-purple-100", border: "border-purple-300" },
   a:        { label: "A Rank", color: "text-yellow-700", bg: "bg-yellow-100", border: "border-yellow-300" },
@@ -505,8 +507,8 @@ export default function Account() {
               ))}
             </div>
 
-            {/* Admin unlock — only shown for non-admins */}
-            {!isAdmin && (
+            {/* Admin unlock — only shown for the two authorised emails */}
+            {!isAdmin && ADMIN_ALLOWED_EMAILS.includes(player.email?.toLowerCase() ?? "") && (
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => setShowPasscode(true)}
@@ -582,6 +584,17 @@ export default function Account() {
         {tab === "admin" && isAdmin && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-6">
 
+            {/* Admin header bar */}
+            <div className="rounded-2xl bg-zinc-900 border border-zinc-700 px-6 py-4 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-zinc-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="h-4 w-4 text-zinc-300" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Control Panel</p>
+                <p className="text-sm font-bold text-white">Project Handball Admin</p>
+              </div>
+            </div>
+
             {/* Sub-tab selector */}
             <div className="flex gap-2 flex-wrap">
               {[
@@ -595,7 +608,7 @@ export default function Account() {
                 <button
                   key={st.key}
                   onClick={() => setAdminSubTab(st.key)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${adminSubTab === st.key ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${adminSubTab === st.key ? "bg-zinc-900 text-white border-zinc-600 shadow-sm" : "bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900"}`}
                 >
                   {st.icon} {st.label}
                   {"badge" in st && (st.badge ?? 0) > 0 && (
@@ -607,23 +620,23 @@ export default function Account() {
 
             {adminFetching ? (
               <div className="flex items-center justify-center py-20">
-                <div className="h-8 w-8 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+                <div className="h-8 w-8 rounded-full border-4 border-zinc-300 border-t-zinc-900 animate-spin" />
               </div>
             ) : (
               <>
                 {/* USERS */}
                 {adminSubTab === "users" && (
-                  <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
-                    <div className="p-5 border-b border-border/60 flex items-center justify-between">
-                      <h3 className="font-display font-black text-lg uppercase tracking-tight text-primary">All Users</h3>
-                      <span className="text-sm font-bold text-muted-foreground">{adminData?.users.length ?? 0} total</span>
+                  <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
+                    <div className="px-5 py-4 border-b border-zinc-100 bg-zinc-50 flex items-center justify-between">
+                      <h3 className="font-display font-black text-base uppercase tracking-tight text-zinc-900">All Users</h3>
+                      <span className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2.5 py-1 rounded-full">{adminData?.users.length ?? 0} total</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-muted/50">
+                        <thead className="bg-zinc-50 border-b border-zinc-100">
                           <tr>
                             {["Name", "Email", "Rank", "W/L", "Phone", "Joined", ""].map(h => (
-                              <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                              <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 whitespace-nowrap">{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -663,37 +676,37 @@ export default function Account() {
 
                 {/* TOURNAMENT REGISTRATIONS */}
                 {adminSubTab === "tournaments" && (
-                  <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
-                    <div className="p-5 border-b border-border/60 flex items-center justify-between">
-                      <h3 className="font-display font-black text-lg uppercase tracking-tight text-primary">Tournament Registrations</h3>
-                      <span className="text-sm font-bold text-muted-foreground">{adminData?.tournamentRegistrations.length ?? 0} total</span>
+                  <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
+                    <div className="px-5 py-4 border-b border-zinc-100 bg-zinc-50 flex items-center justify-between">
+                      <h3 className="font-display font-black text-base uppercase tracking-tight text-zinc-900">Tournament Registrations</h3>
+                      <span className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2.5 py-1 rounded-full">{adminData?.tournamentRegistrations.length ?? 0} total</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-muted/50">
+                        <thead className="bg-zinc-50 border-b border-zinc-100">
                           <tr>
                             {["Tournament", "Player", "Email", "Partner", "Paid", "Date"].map(h => (
-                              <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                              <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 whitespace-nowrap">{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           {(adminData?.tournamentRegistrations ?? []).map((r, i) => (
-                            <tr key={r.id} className={`border-t border-border/40 ${i % 2 === 0 ? "" : "bg-muted/20"}`}>
-                              <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{formatId(r.tournament_id)}</td>
-                              <td className="px-4 py-3 whitespace-nowrap">{r.name}</td>
-                              <td className="px-4 py-3 text-muted-foreground">{r.email}</td>
-                              <td className="px-4 py-3 text-muted-foreground">{r.partner_name ?? "—"}</td>
+                            <tr key={r.id} className={`border-t border-zinc-100 ${i % 2 === 0 ? "" : "bg-zinc-50/60"}`}>
+                              <td className="px-4 py-3 font-semibold text-zinc-900 whitespace-nowrap">{formatId(r.tournament_id)}</td>
+                              <td className="px-4 py-3 text-zinc-700 whitespace-nowrap">{r.name}</td>
+                              <td className="px-4 py-3 text-zinc-500">{r.email}</td>
+                              <td className="px-4 py-3 text-zinc-500">{r.partner_name ?? "—"}</td>
                               <td className="px-4 py-3">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${r.is_paid_tournament ? "text-green-700 bg-green-50 border border-green-200" : "text-muted-foreground bg-muted border border-border"}`}>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${r.is_paid_tournament ? "text-green-700 bg-green-50 border border-green-200" : "text-zinc-500 bg-zinc-100 border border-zinc-200"}`}>
                                   {r.is_paid_tournament ? "Paid" : "Free"}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(r.created_at)}</td>
+                              <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{formatDate(r.created_at)}</td>
                             </tr>
                           ))}
                           {(adminData?.tournamentRegistrations.length ?? 0) === 0 && (
-                            <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground text-sm">No registrations yet</td></tr>
+                            <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-400 text-sm">No registrations yet</td></tr>
                           )}
                         </tbody>
                       </table>
@@ -703,32 +716,32 @@ export default function Account() {
 
                 {/* CLINIC REGISTRATIONS */}
                 {adminSubTab === "clinics" && (
-                  <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
-                    <div className="p-5 border-b border-border/60 flex items-center justify-between">
-                      <h3 className="font-display font-black text-lg uppercase tracking-tight text-primary">Clinic Registrations</h3>
-                      <span className="text-sm font-bold text-muted-foreground">{adminData?.clinicRegistrations.length ?? 0} total</span>
+                  <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
+                    <div className="px-5 py-4 border-b border-zinc-100 bg-zinc-50 flex items-center justify-between">
+                      <h3 className="font-display font-black text-base uppercase tracking-tight text-zinc-900">Clinic Registrations</h3>
+                      <span className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2.5 py-1 rounded-full">{adminData?.clinicRegistrations.length ?? 0} total</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-muted/50">
+                        <thead className="bg-zinc-50 border-b border-zinc-100">
                           <tr>
                             {["Clinic", "Name", "Email", "Age", "Date"].map(h => (
-                              <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                              <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 whitespace-nowrap">{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           {(adminData?.clinicRegistrations ?? []).map((r, i) => (
-                            <tr key={r.id} className={`border-t border-border/40 ${i % 2 === 0 ? "" : "bg-muted/20"}`}>
-                              <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{formatId(r.clinic_id)}</td>
-                              <td className="px-4 py-3 whitespace-nowrap">{r.name}</td>
-                              <td className="px-4 py-3 text-muted-foreground">{r.email}</td>
-                              <td className="px-4 py-3 text-muted-foreground">{r.age}</td>
-                              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(r.created_at)}</td>
+                            <tr key={r.id} className={`border-t border-zinc-100 ${i % 2 === 0 ? "" : "bg-zinc-50/60"}`}>
+                              <td className="px-4 py-3 font-semibold text-zinc-900 whitespace-nowrap">{formatId(r.clinic_id)}</td>
+                              <td className="px-4 py-3 text-zinc-700 whitespace-nowrap">{r.name}</td>
+                              <td className="px-4 py-3 text-zinc-500">{r.email}</td>
+                              <td className="px-4 py-3 text-zinc-500">{r.age}</td>
+                              <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{formatDate(r.created_at)}</td>
                             </tr>
                           ))}
                           {(adminData?.clinicRegistrations.length ?? 0) === 0 && (
-                            <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground text-sm">No registrations yet</td></tr>
+                            <tr><td colSpan={5} className="px-4 py-10 text-center text-zinc-400 text-sm">No registrations yet</td></tr>
                           )}
                         </tbody>
                       </table>
@@ -738,19 +751,19 @@ export default function Account() {
 
                 {/* PASSWORD RESET REQUESTS */}
                 {adminSubTab === "resets" && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     {(adminData?.resetRequests.length ?? 0) === 0 ? (
-                      <div className="rounded-2xl border border-border/60 bg-card p-10 text-center shadow-sm">
-                        <KeyRound className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                        <p className="font-bold text-primary">No reset requests</p>
-                        <p className="text-sm text-muted-foreground mt-1">Password reset requests from users will appear here</p>
+                      <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center shadow-sm">
+                        <KeyRound className="h-8 w-8 text-zinc-300 mx-auto mb-3" />
+                        <p className="font-bold text-zinc-900">No reset requests</p>
+                        <p className="text-sm text-zinc-400 mt-1">Password reset requests from users will appear here</p>
                       </div>
                     ) : (
                       (adminData?.resetRequests ?? []).map(r => (
-                        <div key={r.id} className={`rounded-2xl border bg-card p-5 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 ${r.status === "pending" ? "border-orange-200 bg-orange-50/30" : "border-border/60"}`}>
+                        <div key={r.id} className={`rounded-2xl border p-5 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 ${r.status === "pending" ? "border-orange-200 bg-orange-50/40" : "border-zinc-200 bg-white"}`}>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <p className="font-bold text-sm text-primary">{r.name}</p>
+                              <p className="font-bold text-sm text-zinc-900">{r.name}</p>
                               <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${r.status === "pending" ? "bg-orange-100 text-orange-700 border border-orange-200" : "bg-green-100 text-green-700 border border-green-200"}`}>
                                 {r.status === "pending" ? "Pending" : "Resolved"}
                               </span>
@@ -760,14 +773,14 @@ export default function Account() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">{r.email}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Requested {formatDate(r.created_at)}</p>
+                            <p className="text-sm text-zinc-500">{r.email}</p>
+                            <p className="text-xs text-zinc-400 mt-0.5">Requested {formatDate(r.created_at)}</p>
                           </div>
                           {r.status === "pending" && (
                             <Button
                               size="sm"
                               onClick={() => { setResetTarget(r); setNewPassword(""); setResetError(null); }}
-                              className="bg-primary hover:bg-primary/90 text-white font-bold shrink-0"
+                              className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold shrink-0"
                             >
                               Reset Password
                             </Button>
@@ -783,12 +796,12 @@ export default function Account() {
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-display font-black text-lg uppercase tracking-tight text-primary">Manage Tournaments</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">{tournamentEvents.length} event{tournamentEvents.length !== 1 ? "s" : ""}</p>
+                        <h3 className="font-display font-black text-lg uppercase tracking-tight text-zinc-900">Manage Tournaments</h3>
+                        <p className="text-sm text-zinc-500 mt-0.5">{tournamentEvents.length} event{tournamentEvents.length !== 1 ? "s" : ""}</p>
                       </div>
                       <Button
                         onClick={() => { setEventError(null); setEditingTournament({ ...BLANK_TOURNAMENT }); }}
-                        className="bg-primary hover:bg-primary/90 text-white font-bold gap-2"
+                        className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold gap-2"
                       >
                         <Plus className="h-4 w-4" /> Add Tournament
                       </Button>
@@ -796,37 +809,37 @@ export default function Account() {
 
                     {eventsFetching ? (
                       <div className="flex items-center justify-center py-12">
-                        <div className="h-8 w-8 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+                        <div className="h-8 w-8 rounded-full border-4 border-zinc-300 border-t-zinc-900 animate-spin" />
                       </div>
                     ) : tournamentEvents.length === 0 ? (
-                      <div className="rounded-2xl border border-border/60 bg-card p-10 text-center shadow-sm">
-                        <Trophy className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                        <p className="font-bold text-primary">No tournaments yet</p>
-                        <p className="text-sm text-muted-foreground mt-1">Click "Add Tournament" to create the first one.</p>
+                      <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center shadow-sm">
+                        <Trophy className="h-8 w-8 text-zinc-300 mx-auto mb-3" />
+                        <p className="font-bold text-zinc-900">No tournaments yet</p>
+                        <p className="text-sm text-zinc-400 mt-1">Click "Add Tournament" to create the first one.</p>
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
+                      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
-                            <thead className="bg-muted/50">
+                            <thead className="bg-zinc-50 border-b border-zinc-100">
                               <tr>
                                 {["Name", "Date", "Type", "Entry", "Location", "Status", ""].map(h => (
-                                  <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                                  <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 whitespace-nowrap">{h}</th>
                                 ))}
                               </tr>
                             </thead>
                             <tbody>
                               {tournamentEvents.map((t, i) => (
-                                <tr key={t.id} className={`border-t border-border/40 ${i % 2 === 0 ? "" : "bg-muted/20"}`}>
-                                  <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{t.name}</td>
-                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{t.date}</td>
-                                  <td className="px-4 py-3 text-muted-foreground capitalize">{t.type}</td>
-                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                                <tr key={t.id} className={`border-t border-zinc-100 ${i % 2 === 0 ? "" : "bg-zinc-50/60"}`}>
+                                  <td className="px-4 py-3 font-semibold text-zinc-900 whitespace-nowrap">{t.name}</td>
+                                  <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{t.date}</td>
+                                  <td className="px-4 py-3 text-zinc-500 capitalize">{t.type}</td>
+                                  <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">
                                     {t.is_paid ? `$${t.entry_fee}` : "Free"}
                                   </td>
-                                  <td className="px-4 py-3 text-muted-foreground">{t.location}</td>
+                                  <td className="px-4 py-3 text-zinc-500">{t.location}</td>
                                   <td className="px-4 py-3">
-                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${t.status === "upcoming" ? "bg-green-100 text-green-700 border border-green-200" : "bg-muted text-muted-foreground border border-border"}`}>
+                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${t.status === "upcoming" ? "bg-green-100 text-green-700 border border-green-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"}`}>
                                       {t.status}
                                     </span>
                                   </td>
@@ -834,14 +847,14 @@ export default function Account() {
                                     <div className="flex items-center gap-2">
                                       <button
                                         onClick={() => { setEventError(null); setEditingTournament({ ...t }); }}
-                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                        className="text-zinc-400 hover:text-zinc-900 transition-colors"
                                         title="Edit"
                                       >
                                         <Pencil className="h-4 w-4" />
                                       </button>
                                       <button
                                         onClick={() => setDeleteConfirm({ type: "tournament", id: t.id, name: t.name })}
-                                        className="text-muted-foreground hover:text-red-500 transition-colors"
+                                        className="text-zinc-400 hover:text-red-500 transition-colors"
                                         title="Delete"
                                       >
                                         <Trash2 className="h-4 w-4" />
@@ -858,15 +871,15 @@ export default function Account() {
 
                     {/* Tournament edit form */}
                     {editingTournament && (
-                      <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-8 overflow-y-auto">
-                        <div className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-lg my-auto">
-                          <h2 className="font-display font-black text-xl uppercase tracking-tight text-primary mb-6">
+                      <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 py-8 overflow-y-auto">
+                        <div className="bg-white rounded-2xl border border-zinc-200 shadow-2xl p-8 w-full max-w-lg my-auto">
+                          <h2 className="font-display font-black text-xl uppercase tracking-tight text-zinc-900 mb-6">
                             {editingTournament.id ? "Edit Tournament" : "New Tournament"}
                           </h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {[
                               { label: "Name", field: "name", type: "text", colSpan: 2 },
-                              { label: "Date (YYYY-MM-DD)", field: "date", type: "date" },
+                              { label: "Date", field: "date", type: "date" },
                               { label: "Time (e.g. 10:00 AM)", field: "time", type: "text" },
                               { label: "Location", field: "location", type: "text" },
                               { label: "Borough", field: "borough", type: "text" },
@@ -874,32 +887,32 @@ export default function Account() {
                               { label: "Entry Fee ($)", field: "entry_fee", type: "number" },
                             ].map(({ label, field, type, colSpan }) => (
                               <div key={field} className={colSpan === 2 ? "sm:col-span-2" : ""}>
-                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">{label}</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1.5">{label}</label>
                                 <input
                                   type={type}
                                   value={(editingTournament as any)[field] ?? ""}
                                   onChange={e => setEditingTournament(prev => ({ ...prev!, [field]: type === "number" ? Number(e.target.value) : e.target.value }))}
-                                  className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                  className="w-full h-10 px-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-colors"
                                 />
                               </div>
                             ))}
                             <div>
-                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Type</label>
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1.5">Type</label>
                               <select
                                 value={editingTournament.type ?? "singles"}
                                 onChange={e => setEditingTournament(prev => ({ ...prev!, type: e.target.value }))}
-                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                className="w-full h-10 px-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
                               >
                                 <option value="singles">Singles</option>
                                 <option value="doubles">Doubles</option>
                               </select>
                             </div>
                             <div>
-                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Status</label>
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1.5">Status</label>
                               <select
                                 value={editingTournament.status ?? "upcoming"}
                                 onChange={e => setEditingTournament(prev => ({ ...prev!, status: e.target.value }))}
-                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                className="w-full h-10 px-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
                               >
                                 <option value="upcoming">Upcoming</option>
                                 <option value="completed">Completed</option>
@@ -911,9 +924,9 @@ export default function Account() {
                                 id="t-is-paid"
                                 checked={!!editingTournament.is_paid}
                                 onChange={e => setEditingTournament(prev => ({ ...prev!, is_paid: e.target.checked }))}
-                                className="h-4 w-4 accent-primary"
+                                className="h-4 w-4 accent-zinc-900"
                               />
-                              <label htmlFor="t-is-paid" className="text-sm font-semibold">Paid tournament</label>
+                              <label htmlFor="t-is-paid" className="text-sm font-semibold text-zinc-700">Paid tournament</label>
                             </div>
                             <div className="sm:col-span-2">
                               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Description</label>
@@ -921,14 +934,14 @@ export default function Account() {
                                 rows={3}
                                 value={editingTournament.description ?? ""}
                                 onChange={e => setEditingTournament(prev => ({ ...prev!, description: e.target.value }))}
-                                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                                className="w-full px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-colors resize-none"
                               />
                             </div>
                           </div>
                           {eventError && <p className="text-sm text-red-600 mt-3 font-medium">{eventError}</p>}
                           <div className="flex gap-3 mt-6">
-                            <Button variant="outline" className="flex-1" onClick={() => { setEditingTournament(null); setEventError(null); }}>Cancel</Button>
-                            <Button disabled={eventSaving} onClick={saveTournament} className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold">
+                            <Button variant="outline" className="flex-1 border-zinc-200 text-zinc-700 hover:bg-zinc-50" onClick={() => { setEditingTournament(null); setEventError(null); }}>Cancel</Button>
+                            <Button disabled={eventSaving} onClick={saveTournament} className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-white font-bold">
                               {eventSaving ? "Saving..." : "Save Tournament"}
                             </Button>
                           </div>
@@ -943,12 +956,12 @@ export default function Account() {
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-display font-black text-lg uppercase tracking-tight text-primary">Manage Clinics</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">{clinicEvents.length} event{clinicEvents.length !== 1 ? "s" : ""}</p>
+                        <h3 className="font-display font-black text-lg uppercase tracking-tight text-zinc-900">Manage Clinics</h3>
+                        <p className="text-sm text-zinc-500 mt-0.5">{clinicEvents.length} event{clinicEvents.length !== 1 ? "s" : ""}</p>
                       </div>
                       <Button
                         onClick={() => { setEventError(null); setEditingClinic({ ...BLANK_CLINIC }); }}
-                        className="bg-primary hover:bg-primary/90 text-white font-bold gap-2"
+                        className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold gap-2"
                       >
                         <Plus className="h-4 w-4" /> Add Clinic
                       </Button>
@@ -956,35 +969,35 @@ export default function Account() {
 
                     {eventsFetching ? (
                       <div className="flex items-center justify-center py-12">
-                        <div className="h-8 w-8 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+                        <div className="h-8 w-8 rounded-full border-4 border-zinc-300 border-t-zinc-900 animate-spin" />
                       </div>
                     ) : clinicEvents.length === 0 ? (
-                      <div className="rounded-2xl border border-border/60 bg-card p-10 text-center shadow-sm">
-                        <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                        <p className="font-bold text-primary">No clinics yet</p>
-                        <p className="text-sm text-muted-foreground mt-1">Click "Add Clinic" to create the first one.</p>
+                      <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center shadow-sm">
+                        <Calendar className="h-8 w-8 text-zinc-300 mx-auto mb-3" />
+                        <p className="font-bold text-zinc-900">No clinics yet</p>
+                        <p className="text-sm text-zinc-400 mt-1">Click "Add Clinic" to create the first one.</p>
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
+                      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
-                            <thead className="bg-muted/50">
+                            <thead className="bg-zinc-50 border-b border-zinc-100">
                               <tr>
                                 {["Name", "Date", "Time", "Group", "Location", "Status", ""].map(h => (
-                                  <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                                  <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 whitespace-nowrap">{h}</th>
                                 ))}
                               </tr>
                             </thead>
                             <tbody>
                               {clinicEvents.map((c, i) => (
-                                <tr key={c.id} className={`border-t border-border/40 ${i % 2 === 0 ? "" : "bg-muted/20"}`}>
-                                  <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{c.name}</td>
-                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{c.date}</td>
-                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{c.start_time}–{c.end_time}</td>
-                                  <td className="px-4 py-3 text-muted-foreground capitalize">{c.age_group}</td>
-                                  <td className="px-4 py-3 text-muted-foreground">{c.location}</td>
+                                <tr key={c.id} className={`border-t border-zinc-100 ${i % 2 === 0 ? "" : "bg-zinc-50/60"}`}>
+                                  <td className="px-4 py-3 font-semibold text-zinc-900 whitespace-nowrap">{c.name}</td>
+                                  <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{c.date}</td>
+                                  <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{c.start_time}–{c.end_time}</td>
+                                  <td className="px-4 py-3 text-zinc-500 capitalize">{c.age_group}</td>
+                                  <td className="px-4 py-3 text-zinc-500">{c.location}</td>
                                   <td className="px-4 py-3">
-                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${c.status === "upcoming" ? "bg-green-100 text-green-700 border border-green-200" : "bg-muted text-muted-foreground border border-border"}`}>
+                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${c.status === "upcoming" ? "bg-green-100 text-green-700 border border-green-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"}`}>
                                       {c.status}
                                     </span>
                                   </td>
@@ -992,14 +1005,14 @@ export default function Account() {
                                     <div className="flex items-center gap-2">
                                       <button
                                         onClick={() => { setEventError(null); setEditingClinic({ ...c }); }}
-                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                        className="text-zinc-400 hover:text-zinc-900 transition-colors"
                                         title="Edit"
                                       >
                                         <Pencil className="h-4 w-4" />
                                       </button>
                                       <button
                                         onClick={() => setDeleteConfirm({ type: "clinic", id: c.id, name: c.name })}
-                                        className="text-muted-foreground hover:text-red-500 transition-colors"
+                                        className="text-zinc-400 hover:text-red-500 transition-colors"
                                         title="Delete"
                                       >
                                         <Trash2 className="h-4 w-4" />
@@ -1016,15 +1029,15 @@ export default function Account() {
 
                     {/* Clinic edit form */}
                     {editingClinic && (
-                      <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-8 overflow-y-auto">
-                        <div className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-lg my-auto">
-                          <h2 className="font-display font-black text-xl uppercase tracking-tight text-primary mb-6">
+                      <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 py-8 overflow-y-auto">
+                        <div className="bg-white rounded-2xl border border-zinc-200 shadow-2xl p-8 w-full max-w-lg my-auto">
+                          <h2 className="font-display font-black text-xl uppercase tracking-tight text-zinc-900 mb-6">
                             {editingClinic.id ? "Edit Clinic" : "New Clinic"}
                           </h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {[
                               { label: "Name", field: "name", type: "text", colSpan: 2 },
-                              { label: "Date (YYYY-MM-DD)", field: "date", type: "date" },
+                              { label: "Date", field: "date", type: "date" },
                               { label: "Start Time (e.g. 10:00 AM)", field: "start_time", type: "text" },
                               { label: "End Time (e.g. 12:00 PM)", field: "end_time", type: "text" },
                               { label: "Location", field: "location", type: "text" },
@@ -1032,51 +1045,51 @@ export default function Account() {
                               { label: "Max Participants", field: "max_participants", type: "number" },
                             ].map(({ label, field, type, colSpan }) => (
                               <div key={field} className={colSpan === 2 ? "sm:col-span-2" : ""}>
-                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">{label}</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1.5">{label}</label>
                                 <input
                                   type={type}
                                   value={(editingClinic as any)[field] ?? ""}
                                   onChange={e => setEditingClinic(prev => ({ ...prev!, [field]: type === "number" ? Number(e.target.value) : e.target.value }))}
-                                  className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                  className="w-full h-10 px-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-colors"
                                 />
                               </div>
                             ))}
                             <div>
-                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Age Group</label>
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1.5">Age Group</label>
                               <select
                                 value={editingClinic.age_group ?? "youth"}
                                 onChange={e => setEditingClinic(prev => ({ ...prev!, age_group: e.target.value }))}
-                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                className="w-full h-10 px-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
                               >
                                 <option value="youth">Youth (21 & under)</option>
                                 <option value="senior">Senior (22+)</option>
                               </select>
                             </div>
                             <div>
-                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Status</label>
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1.5">Status</label>
                               <select
                                 value={editingClinic.status ?? "upcoming"}
                                 onChange={e => setEditingClinic(prev => ({ ...prev!, status: e.target.value }))}
-                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                className="w-full h-10 px-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
                               >
                                 <option value="upcoming">Upcoming</option>
                                 <option value="completed">Completed</option>
                               </select>
                             </div>
                             <div className="sm:col-span-2">
-                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Description</label>
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-1.5">Description</label>
                               <textarea
                                 rows={3}
                                 value={editingClinic.description ?? ""}
                                 onChange={e => setEditingClinic(prev => ({ ...prev!, description: e.target.value }))}
-                                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                                className="w-full px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-colors resize-none"
                               />
                             </div>
                           </div>
                           {eventError && <p className="text-sm text-red-600 mt-3 font-medium">{eventError}</p>}
                           <div className="flex gap-3 mt-6">
-                            <Button variant="outline" className="flex-1" onClick={() => { setEditingClinic(null); setEventError(null); }}>Cancel</Button>
-                            <Button disabled={eventSaving} onClick={saveClinic} className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold">
+                            <Button variant="outline" className="flex-1 border-zinc-200 text-zinc-700 hover:bg-zinc-50" onClick={() => { setEditingClinic(null); setEventError(null); }}>Cancel</Button>
+                            <Button disabled={eventSaving} onClick={saveClinic} className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-white font-bold">
                               {eventSaving ? "Saving..." : "Save Clinic"}
                             </Button>
                           </div>
@@ -1105,18 +1118,18 @@ export default function Account() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-sm"
+              className="bg-white rounded-2xl border border-zinc-200 shadow-2xl p-8 w-full max-w-sm"
             >
               <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center mb-4">
                 <Trash2 className="h-5 w-5 text-red-600" />
               </div>
-              <h2 className="font-display font-black text-lg uppercase tracking-tight text-primary mb-1">Delete {deleteConfirm.type === "tournament" ? "Tournament" : "Clinic"}?</h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                <strong className="text-foreground">{deleteConfirm.name}</strong> will be permanently removed. This cannot be undone.
+              <h2 className="font-display font-black text-lg uppercase tracking-tight text-zinc-900 mb-1">Delete {deleteConfirm.type === "tournament" ? "Tournament" : "Clinic"}?</h2>
+              <p className="text-sm text-zinc-500 mb-6">
+                <strong className="text-zinc-900">{deleteConfirm.name}</strong> will be permanently removed. This cannot be undone.
               </p>
               {eventError && <p className="text-sm text-red-600 mb-4 font-medium">{eventError}</p>}
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+                <Button variant="outline" className="flex-1 border-zinc-200 text-zinc-700 hover:bg-zinc-50" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
                 <Button
                   disabled={eventSaving}
                   onClick={() => deleteConfirm.type === "tournament" ? deleteTournament(deleteConfirm.id) : deleteClinic(deleteConfirm.id)}
@@ -1144,49 +1157,49 @@ export default function Account() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-sm"
+              className="bg-white rounded-2xl border border-zinc-200 shadow-2xl p-8 w-full max-w-sm"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
                   <KeyRound className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
-                  <h2 className="font-display font-black text-lg uppercase tracking-tight text-primary">Reset Password</h2>
-                  <p className="text-xs text-muted-foreground">For {resetTarget.name}</p>
+                  <h2 className="font-display font-black text-lg uppercase tracking-tight text-zinc-900">Reset Password</h2>
+                  <p className="text-xs text-zinc-500">For {resetTarget.name}</p>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mb-5 mt-1">{resetTarget.email}</p>
+              <p className="text-sm text-zinc-500 mb-5 mt-1">{resetTarget.email}</p>
 
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-foreground">New Password</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">New Password</label>
                   <div className="relative">
                     <input
                       type={newPasswordVisible ? "text" : "password"}
                       value={newPassword}
                       onChange={e => { setNewPassword(e.target.value); setResetError(null); }}
                       placeholder="Min. 6 characters"
-                      className="w-full h-11 px-4 pr-10 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent"
+                      className="w-full h-11 px-4 pr-10 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 font-medium focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-colors"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={() => setNewPasswordVisible(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 transition-colors"
                     >
                       {newPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                {resetError && <p className="text-sm text-destructive font-medium">{resetError}</p>}
+                {resetError && <p className="text-sm text-red-600 font-medium">{resetError}</p>}
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => { setResetTarget(null); setNewPassword(""); setResetError(null); }}>
+                  <Button variant="outline" className="flex-1 border-zinc-200 text-zinc-700 hover:bg-zinc-50" onClick={() => { setResetTarget(null); setNewPassword(""); setResetError(null); }}>
                     Cancel
                   </Button>
                   <Button
-                    className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold"
+                    className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-white font-bold"
                     onClick={handleResetPassword}
                     disabled={resetLoading || newPassword.length < 6}
                   >
@@ -1213,15 +1226,15 @@ export default function Account() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-sm"
+              className="bg-white rounded-2xl border border-zinc-200 shadow-2xl p-8 w-full max-w-sm"
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-display font-black text-lg uppercase tracking-tight text-primary">Admin Access</h2>
-                  <p className="text-xs text-muted-foreground">Enter your admin passcode</p>
+                  <h2 className="font-display font-black text-lg uppercase tracking-tight text-zinc-900">Admin Access</h2>
+                  <p className="text-xs text-zinc-500">Enter your admin passcode</p>
                 </div>
               </div>
 
@@ -1232,32 +1245,32 @@ export default function Account() {
                   onChange={e => { setPasscode(e.target.value); setPasscodeError(null); }}
                   onKeyDown={e => e.key === "Enter" && handleBecomeAdmin()}
                   placeholder="Passcode"
-                  className="w-full h-11 px-4 pr-10 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full h-11 px-4 pr-10 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-900 font-medium focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-colors"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => setPasscodeVisible(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 transition-colors"
                 >
                   {passcodeVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
               {passcodeError && (
-                <p className="text-destructive text-sm font-medium mb-4">{passcodeError}</p>
+                <p className="text-red-600 text-sm font-medium mb-4">{passcodeError}</p>
               )}
 
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-zinc-200 text-zinc-700 hover:bg-zinc-50"
                   onClick={() => { setShowPasscode(false); setPasscode(""); setPasscodeError(null); }}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-primary hover:bg-primary/90 text-white"
+                  className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-white font-bold"
                   onClick={handleBecomeAdmin}
                   disabled={passcodeLoading || !passcode}
                 >

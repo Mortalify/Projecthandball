@@ -8,6 +8,8 @@ export default async function handler(req: any, res: any) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  const ALLOWED_ADMIN_EMAILS = ["shianrdenton@gmail.com", "victoriousparks@gmail.com"];
+
   const token = getTokenFromRequest(req);
   if (!token) return res.status(401).json({ error: "Unauthorized" });
 
@@ -16,6 +18,10 @@ export default async function handler(req: any, res: any) {
     payload = verifyToken(token);
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });
+  }
+
+  if (!ALLOWED_ADMIN_EMAILS.includes(payload.email?.toLowerCase() ?? "")) {
+    return res.status(403).json({ error: "Not authorized" });
   }
 
   let client: ReturnType<typeof createDbClient> | null = null;
