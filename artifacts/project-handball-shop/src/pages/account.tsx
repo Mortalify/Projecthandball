@@ -402,7 +402,7 @@ export default function Account() {
 
         {/* Tabs */}
         <div className="container mx-auto px-4">
-          <div className="flex gap-0 border-b border-white/10 overflow-x-auto">
+          <div className="flex gap-0 border-b border-white/10">
             {tabs.map(t => (
               <button
                 key={t.key}
