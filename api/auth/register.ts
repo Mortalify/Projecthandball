@@ -9,8 +9,9 @@ export default async function handler(req: any, res: any) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const client = createDbClient();
+  let client: ReturnType<typeof createDbClient> | null = null;
   try {
+    client = createDbClient();
     await client.connect();
     const body = await parseBody(req);
     const { name, email, password, phone, dateOfBirth } = body;
@@ -50,12 +51,13 @@ export default async function handler(req: any, res: any) {
         rank: player.rank,
         phone: player.phone,
         dateOfBirth: player.date_of_birth,
+        isAdmin: false,
       },
     });
   } catch (err: any) {
     console.error("Register error:", err.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: err.message ?? "Server error" });
   } finally {
-    await client.end();
+    if (client) await client.end().catch(() => {});
   }
 }

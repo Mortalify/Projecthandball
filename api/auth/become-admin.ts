@@ -18,17 +18,18 @@ export default async function handler(req: any, res: any) {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 
-  const body = await parseBody(req);
-  const { passcode } = body;
-
-  const adminPasscode = process.env.ADMIN_PASSCODE;
-  if (!adminPasscode) return res.status(500).json({ error: "Admin not configured" });
-  if (!passcode || passcode !== adminPasscode) {
-    return res.status(403).json({ error: "Incorrect admin passcode" });
-  }
-
-  const client = createDbClient();
+  let client: ReturnType<typeof createDbClient> | null = null;
   try {
+    const body = await parseBody(req);
+    const { passcode } = body;
+
+    const adminPasscode = process.env.ADMIN_PASSCODE;
+    if (!adminPasscode) return res.status(500).json({ error: "Admin not configured" });
+    if (!passcode || passcode !== adminPasscode) {
+      return res.status(403).json({ error: "Incorrect admin passcode" });
+    }
+
+    client = createDbClient();
     await client.connect();
     await client.query("UPDATE players SET is_admin = true WHERE id = $1", [payload.id]);
     const result = await client.query(
@@ -48,8 +49,8 @@ export default async function handler(req: any, res: any) {
       },
     });
   } catch (err: any) {
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: err.message ?? "Server error" });
   } finally {
-    await client.end();
+    if (client) await client.end().catch(() => {});
   }
 }

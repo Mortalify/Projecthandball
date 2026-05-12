@@ -18,8 +18,9 @@ export default async function handler(req: any, res: any) {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 
-  const client = createDbClient();
+  let client: ReturnType<typeof createDbClient> | null = null;
   try {
+    client = createDbClient();
     await client.connect();
     const result = await client.query(
       "SELECT id, name, email, rank, phone, date_of_birth, is_admin FROM players WHERE id = $1 LIMIT 1",
@@ -42,8 +43,8 @@ export default async function handler(req: any, res: any) {
     });
   } catch (err: any) {
     console.error("Me error:", err.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: err.message ?? "Server error" });
   } finally {
-    await client.end();
+    if (client) await client.end().catch(() => {});
   }
 }
