@@ -17,6 +17,7 @@ export function Navbar() {
   const navLinks = [
     { href: "/", label: "Home", active: location === "/" },
     { href: "/tournaments", label: "Tournaments", active: location === "/tournaments", beta: true },
+    { href: "/clinics", label: "Clinics", active: location === "/clinics", beta: true },
     { href: "/shop", label: "Shop All", active: location === "/shop" || location.startsWith("/product") },
   ];
 

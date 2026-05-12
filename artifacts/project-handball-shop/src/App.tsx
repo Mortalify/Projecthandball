@@ -14,6 +14,7 @@ import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Tournaments from "@/pages/tournaments";
+import Clinics from "@/pages/clinics";
 import CheckoutSuccess from "@/pages/checkout-success";
 import CheckoutCancel from "@/pages/checkout-cancel";
 import NotFound from "@/pages/not-found";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/product/:id" component={ProductDetail} />
       <Route path="/cart" component={Cart} />
       <Route path="/tournaments" component={Tournaments} />
+      <Route path="/clinics" component={Clinics} />
       <Route path="/checkout/success" component={CheckoutSuccess} />
       <Route path="/checkout/cancel" component={CheckoutCancel} />
       <Route component={NotFound} />
