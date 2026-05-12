@@ -1,7 +1,5 @@
 import Stripe from "stripe";
 
-const PRINTIFY_API = "https://api.printify.com/v1";
-
 interface CheckoutItem {
   productId: string;
   colorName: string;
@@ -14,7 +12,8 @@ interface CheckoutItem {
 
 interface CartMeta {
   p: string;
-  v: number;
+  c: string;
+  s: string;
   q: number;
 }
 
@@ -37,40 +36,6 @@ async function parseBody(req: any): Promise<any> {
   });
 }
 
-async function findVariantId(
-  apiKey: string,
-  shopId: string,
-  productId: string,
-  colorName: string,
-  sizeName: string,
-): Promise<number | null> {
-  try {
-    const res = await fetch(`${PRINTIFY_API}/shops/${shopId}/products/${productId}.json`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!res.ok) return null;
-    const product = await res.json() as any;
-    const colorOption = product.options?.find((o: any) => o.name === "Colors");
-    const sizeOption = product.options?.find((o: any) => o.name === "Sizes");
-    const colorValue = colorOption?.values?.find(
-      (v: any) => v.title.toLowerCase() === colorName.toLowerCase(),
-    );
-    const sizeValue = sizeOption?.values?.find(
-      (v: any) => v.title.toLowerCase() === sizeName.toLowerCase(),
-    );
-    if (!colorValue && !sizeValue) return null;
-    const variant = product.variants?.find((v: any) => {
-      if (!v.is_enabled) return false;
-      const hasColor = colorValue ? v.options.includes(colorValue.id) : true;
-      const hasSize = sizeValue ? v.options.includes(sizeValue.id) : true;
-      return hasColor && hasSize;
-    });
-    return variant?.id ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -85,9 +50,6 @@ export default async function handler(req: any, res: any) {
     return res.status(500).json({ error: "Stripe is not configured on this server. Add STRIPE_SECRET_KEY to Vercel environment variables." });
   }
 
-  const printifyKey = process.env.PRINTIFY_API_KEY;
-  const shopId = process.env.PRINTIFY_SHOP_ID;
-
   try {
     const body = await parseBody(req);
     const items: CheckoutItem[] = body?.items ?? [];
@@ -100,31 +62,28 @@ export default async function handler(req: any, res: any) {
     const host = req.headers["host"] as string;
     const baseUrl = `${proto}://${host}`;
 
-    const cartMeta: CartMeta[] = [];
+    // Store raw cart data — variant ID lookup happens in the webhook after payment
+    const cartMeta: CartMeta[] = items.map((item) => ({
+      p: item.productId,
+      c: item.colorName ?? "",
+      s: item.sizeName ?? "",
+      q: item.quantity,
+    }));
 
-    const line_items = await Promise.all(
-      items.map(async (item) => {
-        let variantId: number | null = null;
-        if (printifyKey && shopId) {
-          variantId = await findVariantId(printifyKey, shopId, item.productId, item.colorName, item.sizeName);
-        }
-        if (variantId !== null) {
-          cartMeta.push({ p: item.productId, v: variantId, q: item.quantity });
-        }
-        const isValidImage = item.image?.startsWith("https://");
-        return {
-          price_data: {
-            currency: "usd",
-            unit_amount: Math.round(item.price * 100),
-            product_data: {
-              name: `${item.name}${item.colorName ? ` — ${item.colorName}` : ""}${item.sizeName ? ` / ${item.sizeName}` : ""}`,
-              images: isValidImage ? [item.image!] : [],
-            },
+    const line_items = items.map((item) => {
+      const isValidImage = item.image?.startsWith("https://");
+      return {
+        price_data: {
+          currency: "usd",
+          unit_amount: Math.round(item.price * 100),
+          product_data: {
+            name: `${item.name}${item.colorName ? ` — ${item.colorName}` : ""}${item.sizeName ? ` / ${item.sizeName}` : ""}`,
+            images: isValidImage ? [item.image!] : [],
           },
-          quantity: item.quantity,
-        };
-      }),
-    );
+        },
+        quantity: item.quantity,
+      };
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

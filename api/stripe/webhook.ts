@@ -12,19 +12,93 @@ async function readRawBody(req: any): Promise<Buffer> {
   });
 }
 
+async function findVariantId(
+  apiKey: string,
+  shopId: string,
+  productId: string,
+  colorName: string,
+  sizeName: string,
+): Promise<number | null> {
+  try {
+    const res = await fetch(`${PRINTIFY_API}/shops/${shopId}/products/${productId}.json`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (!res.ok) {
+      console.error(`Printify product fetch failed [${res.status}] for product ${productId}`);
+      return null;
+    }
+    const product = await res.json() as any;
+    const colorOption = product.options?.find((o: any) => o.name === "Colors");
+    const sizeOption = product.options?.find((o: any) => o.name === "Sizes");
+
+    const colorValue = colorOption?.values?.find(
+      (v: any) => v.title.toLowerCase() === colorName.toLowerCase(),
+    );
+    const sizeValue = sizeOption?.values?.find(
+      (v: any) => v.title.toLowerCase() === sizeName.toLowerCase(),
+    );
+
+    // If neither color nor size matched, log and bail
+    if (!colorValue && !sizeValue) {
+      console.error(`No matching color/size for product ${productId}: color="${colorName}" size="${sizeName}"`);
+      return null;
+    }
+
+    const variant = product.variants?.find((v: any) => {
+      if (!v.is_enabled) return false;
+      const hasColor = colorValue ? v.options.includes(colorValue.id) : true;
+      const hasSize = sizeValue ? v.options.includes(sizeValue.id) : true;
+      return hasColor && hasSize;
+    });
+
+    if (!variant) {
+      console.error(`No enabled variant found for product ${productId}: color="${colorName}" size="${sizeName}"`);
+      return null;
+    }
+
+    return variant.id;
+  } catch (err) {
+    console.error(`Exception looking up variant for product ${productId}:`, err);
+    return null;
+  }
+}
+
 async function createPrintifyOrder(session: Stripe.Checkout.Session): Promise<void> {
   const apiKey = process.env.PRINTIFY_API_KEY;
   const shopId = process.env.PRINTIFY_SHOP_ID;
-  if (!apiKey || !shopId) return;
-
-  let cartItems: { p: string; v: number; q: number }[] = [];
-  try {
-    cartItems = JSON.parse(session.metadata?.cart_items ?? "[]");
-  } catch {
-    console.error("Failed to parse cart_items metadata");
+  if (!apiKey || !shopId) {
+    console.error("PRINTIFY_API_KEY or PRINTIFY_SHOP_ID not set");
     return;
   }
-  if (!cartItems.length) return;
+
+  let rawCart: { p: string; c: string; s: string; q: number }[] = [];
+  try {
+    rawCart = JSON.parse(session.metadata?.cart_items ?? "[]");
+  } catch {
+    console.error("Failed to parse cart_items metadata:", session.metadata?.cart_items);
+    return;
+  }
+
+  if (!rawCart.length) {
+    console.error("cart_items is empty — cannot create Printify order for session:", session.id);
+    return;
+  }
+
+  // Resolve variant IDs now, at webhook time
+  const lineItems: { product_id: string; variant_id: number; quantity: number }[] = [];
+  for (const item of rawCart) {
+    const variantId = await findVariantId(apiKey, shopId, item.p, item.c, item.s);
+    if (variantId === null) {
+      console.error(`Skipping item — could not resolve variant: product=${item.p} color="${item.c}" size="${item.s}"`);
+      continue;
+    }
+    lineItems.push({ product_id: item.p, variant_id: variantId, quantity: item.q });
+  }
+
+  if (!lineItems.length) {
+    console.error("No line items resolved — Printify order not created for session:", session.id);
+    return;
+  }
 
   const shipping = (session as any).shipping_details?.address;
   const customerName: string =
@@ -36,11 +110,7 @@ async function createPrintifyOrder(session: Stripe.Checkout.Session): Promise<vo
   const orderBody = {
     external_id: session.id,
     label: "Project Handball Order",
-    line_items: cartItems.map((item) => ({
-      product_id: item.p,
-      variant_id: item.v,
-      quantity: item.q,
-    })),
+    line_items: lineItems,
     shipping_method: 1,
     send_shipping_notification: true,
     address_to: {
@@ -71,7 +141,7 @@ async function createPrintifyOrder(session: Stripe.Checkout.Session): Promise<vo
       console.error(`Printify order failed [${res.status}]:`, text);
     } else {
       const order = await res.json() as any;
-      console.log("Printify order created:", order.id);
+      console.log("Printify order created successfully:", order.id);
     }
   } catch (err) {
     console.error("Error creating Printify order:", err);
