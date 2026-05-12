@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { tournaments, type Tournament } from "@/lib/tournaments";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +17,42 @@ import {
   MapPin, Calendar, Users, Trophy, Crown, Star,
   Shield, User, LogIn, LogOut, Check, X
 } from "lucide-react";
+
+export type TournamentType = "singles" | "doubles";
+
+export type Tournament = {
+  id: string;
+  slug?: string;
+  name: string;
+  date: string;
+  time: string;
+  location: string;
+  borough: string;
+  type: TournamentType;
+  isPaid: boolean;
+  entryFee: number;
+  description: string;
+  maxParticipants: number;
+  status: "upcoming" | "completed";
+};
+
+function rowToTournament(row: any): Tournament {
+  return {
+    id: row.slug ?? row.id,
+    slug: row.slug,
+    name: row.name,
+    date: row.date,
+    time: row.time,
+    location: row.location,
+    borough: row.borough,
+    type: row.type as TournamentType,
+    isPaid: row.is_paid,
+    entryFee: row.entry_fee,
+    description: row.description,
+    maxParticipants: row.max_participants,
+    status: row.status as "upcoming" | "completed",
+  };
+}
 
 // ─── S Rank Badge with portal tooltip ───────────────────────────────────────
 function SRankBadge() {
@@ -70,70 +105,20 @@ function SRankBadge() {
 
 // ─── Rank config ────────────────────────────────────────────────────────────
 const RANKS = [
-  {
-    key: "s",
-    label: "S Player",
-    description: "Won a paid tournament (singles or doubles)",
-    color: "text-yellow-500",
-    bg: "bg-yellow-500/10 border-yellow-500/30",
-    badge: "bg-yellow-500 text-black",
-    icon: Crown,
-  },
-  {
-    key: "a",
-    label: "A Player",
-    description: "Elite competitor",
-    color: "text-accent",
-    bg: "bg-accent/10 border-accent/30",
-    badge: "bg-accent text-white",
-    icon: Star,
-  },
-  {
-    key: "b",
-    label: "B Player",
-    description: "Seasoned player",
-    color: "text-green-500",
-    bg: "bg-green-500/10 border-green-500/30",
-    badge: "bg-green-500 text-white",
-    icon: Shield,
-  },
-  {
-    key: "c",
-    label: "C Player",
-    description: "Up and coming",
-    color: "text-orange-500",
-    bg: "bg-orange-500/10 border-orange-500/30",
-    badge: "bg-orange-500 text-white",
-    icon: User,
-  },
-  {
-    key: "unranked",
-    label: "Unranked",
-    description: "Just getting started",
-    color: "text-muted-foreground",
-    bg: "bg-muted/50 border-border",
-    badge: "bg-muted text-muted-foreground",
-    icon: User,
-  },
+  { key: "s", label: "S Player", description: "Won a paid tournament (singles or doubles)", color: "text-yellow-500", bg: "bg-yellow-500/10 border-yellow-500/30", badge: "bg-yellow-500 text-black", icon: Crown },
+  { key: "a", label: "A Player", description: "Elite competitor", color: "text-accent", bg: "bg-accent/10 border-accent/30", badge: "bg-accent text-white", icon: Star },
+  { key: "b", label: "B Player", description: "Seasoned player", color: "text-green-500", bg: "bg-green-500/10 border-green-500/30", badge: "bg-green-500 text-white", icon: Shield },
+  { key: "c", label: "C Player", description: "Up and coming", color: "text-orange-500", bg: "bg-orange-500/10 border-orange-500/30", badge: "bg-orange-500 text-white", icon: User },
+  { key: "unranked", label: "Unranked", description: "Just getting started", color: "text-muted-foreground", bg: "bg-muted/50 border-border", badge: "bg-muted text-muted-foreground", icon: User },
 ] as const;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 function formatDate(dateStr: string) {
   return new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
+    weekday: "short", month: "long", day: "numeric", year: "numeric",
   });
 }
 
-type LeaderboardPlayer = {
-  id: number;
-  name: string;
-  rank: string;
-  wins: number;
-  losses: number;
-};
+type LeaderboardPlayer = { id: number; name: string; rank: string; wins: number; losses: number };
 
 // ─── Tournament Card ──────────────────────────────────────────────────────────
 function TournamentCard({ tournament, onRegister }: { tournament: Tournament; onRegister: (t: Tournament) => void }) {
@@ -211,11 +196,7 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
     if (open) {
       setName(player?.name ?? "");
       setEmail(player?.email ?? "");
-      setPhone("");
-      setPartnerName("");
-      setLoading(false);
-      setSuccess(false);
-      setError("");
+      setPhone(""); setPartnerName(""); setLoading(false); setSuccess(false); setError("");
     }
   }, [open, player]);
 
@@ -231,52 +212,21 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
       if (tournament.isPaid) {
         const res = await fetch("/api/registrations/tournament-checkout", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({
-            tournamentId: tournament.id,
-            tournamentName: tournament.name,
-            entryFee: tournament.entryFee,
-            name,
-            email,
-            phone,
-            partnerName: tournament.type === "doubles" ? partnerName : undefined,
-          }),
+          headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ tournamentId: tournament.id, tournamentName: tournament.name, entryFee: tournament.entryFee, name, email, phone, partnerName: tournament.type === "doubles" ? partnerName : undefined }),
         });
         const data = await res.json();
-        if (!res.ok) {
-          setError(data.error ?? "Failed to start checkout");
-          return;
-        }
-        if (data.url) {
-          window.location.href = data.url;
-          return;
-        }
+        if (!res.ok) { setError(data.error ?? "Failed to start checkout"); return; }
+        if (data.url) { window.location.href = data.url; return; }
       }
 
       const res = await fetch("/api/registrations", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          tournamentId: tournament.id,
-          name,
-          email,
-          phone,
-          partnerName: tournament.type === "doubles" ? partnerName : undefined,
-          isPaidTournament: false,
-        }),
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ tournamentId: tournament.id, name, email, phone, partnerName: tournament.type === "doubles" ? partnerName : undefined, isPaidTournament: false }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Registration failed");
-      } else {
-        setSuccess(true);
-      }
+      if (!res.ok) { setError(data.error ?? "Registration failed"); } else { setSuccess(true); }
     } catch {
       setError("Network error — please try again");
     } finally {
@@ -306,12 +256,8 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
               <Check className="h-8 w-8 text-green-500" />
             </div>
             <p className="font-bold text-primary mb-1">See you on the court!</p>
-            <p className="text-sm text-muted-foreground mb-6">
-              {`We've got you down. See you ${formatDate(tournament.date)} at ${tournament.location}.`}
-            </p>
-            <Button onClick={onClose} className="bg-primary text-white font-bold uppercase tracking-widest">
-              Close
-            </Button>
+            <p className="text-sm text-muted-foreground mb-6">{`We've got you down. See you ${formatDate(tournament.date)} at ${tournament.location}.`}</p>
+            <Button onClick={onClose} className="bg-primary text-white font-bold uppercase tracking-widest">Close</Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
@@ -345,9 +291,7 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
               </div>
             )}
             <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest h-11">
-              {loading
-                ? (tournament.isPaid ? "Redirecting to payment..." : "Registering...")
-                : (tournament.isPaid ? `Pay $${tournament.entryFee} & Register` : "Confirm Registration")}
+              {loading ? (tournament.isPaid ? "Redirecting to payment..." : "Registering...") : (tournament.isPaid ? `Pay $${tournament.entryFee} & Register` : "Confirm Registration")}
             </Button>
           </form>
         )}
@@ -360,12 +304,9 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
 function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { login, register } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [name, setName] = useState(""); const [email, setEmail] = useState("");
+  const [password, setPassword] = useState(""); const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false); const [error, setError] = useState("");
 
   const reset = () => { setName(""); setEmail(""); setPassword(""); setConfirm(""); setError(""); };
   const switchMode = (m: "login" | "signup") => { setMode(m); reset(); };
@@ -373,23 +314,14 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (mode === "signup" && password !== confirm) {
-      setError("Passwords do not match");
-      return;
-    }
+    if (mode === "signup" && password !== confirm) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
-      if (mode === "login") {
-        await login(email, password);
-      } else {
-        await register(name, email, password);
-      }
+      if (mode === "login") { await login(email, password); } else { await register(name, email, password); }
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
@@ -403,19 +335,13 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
             {mode === "login" ? "Log in to your player account." : "Sign up to track your rank and tournament history."}
           </DialogDescription>
         </DialogHeader>
-
         <div className="flex rounded-xl border border-border overflow-hidden mb-2">
           {(["login", "signup"] as const).map(m => (
-            <button
-              key={m}
-              onClick={() => switchMode(m)}
-              className={`flex-1 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${mode === m ? "bg-primary text-white" : "bg-background text-muted-foreground hover:text-primary"}`}
-            >
+            <button key={m} onClick={() => switchMode(m)} className={`flex-1 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${mode === m ? "bg-primary text-white" : "bg-background text-muted-foreground hover:text-primary"}`}>
               {m === "login" ? "Log In" : "Sign Up"}
             </button>
           ))}
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-3">
           {mode === "signup" && (
             <div className="space-y-1.5">
@@ -459,17 +385,10 @@ function Leaderboard() {
   const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/leaderboard")
-      .then(r => r.json())
-      .then(d => setPlayers(d.players ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    fetch("/api/leaderboard").then(r => r.json()).then(d => setPlayers(d.players ?? [])).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const groupedByRank = RANKS.map(rank => ({
-    ...rank,
-    players: players.filter(p => p.rank === rank.key),
-  }));
+  const groupedByRank = RANKS.map(rank => ({ ...rank, players: players.filter(p => p.rank === rank.key) }));
 
   return (
     <div>
@@ -482,13 +401,9 @@ function Leaderboard() {
           <div className="flex items-center gap-3">
             <div className="text-right">
               <p className="text-sm font-bold text-primary">{player.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {player.rank === "unranked" ? "Unranked" : `${player.rank.toUpperCase()} Player`}
-              </p>
+              <p className="text-xs text-muted-foreground capitalize">{player.rank === "unranked" ? "Unranked" : `${player.rank.toUpperCase()} Player`}</p>
             </div>
-            <Button variant="outline" size="sm" onClick={logout} className="gap-2">
-              <LogOut className="h-3.5 w-3.5" /> Log out
-            </Button>
+            <Button variant="outline" size="sm" onClick={logout} className="gap-2"><LogOut className="h-3.5 w-3.5" /> Log out</Button>
           </div>
         ) : (
           <Button onClick={() => setAuthOpen(true)} className="bg-primary text-white font-bold uppercase tracking-widest gap-2">
@@ -507,7 +422,6 @@ function Leaderboard() {
         </div>
       )}
 
-      {/* Rank legend */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8">
         {RANKS.map(rank => {
           const Icon = rank.icon;
@@ -545,13 +459,12 @@ function Leaderboard() {
                 <div className="divide-y divide-border/50">
                   {group.players.map((p, i) => (
                     <div key={p.id} className={`flex items-center gap-4 px-5 py-3 bg-background/60 ${p.id === player?.id ? "ring-1 ring-inset ring-accent/30" : ""}`}>
-                      <span className="text-sm font-bold text-muted-foreground w-6 text-center">{i + 1}</span>
-                      <div className="flex-grow">
-                        <span className="font-bold text-primary text-sm">{p.name}</span>
-                        {p.id === player?.id && <span className="ml-2 text-xs text-accent font-bold">(you)</span>}
+                      <span className="text-xs font-black text-muted-foreground w-5">{i + 1}</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-primary">{p.name}</p>
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
-                        <span className="font-bold text-foreground">{p.wins}W</span> · <span>{p.losses}L</span>
+                        <span className="font-bold text-green-600">{p.wins}W</span> — <span className="font-bold text-red-500">{p.losses}L</span>
                       </div>
                     </div>
                   ))}
@@ -569,83 +482,76 @@ function Leaderboard() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function TournamentsPage() {
+  const [tournamentList, setTournamentList] = useState<Tournament[]>([]);
+  const [loadingTournaments, setLoadingTournaments] = useState(true);
   const [registerTarget, setRegisterTarget] = useState<Tournament | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const [showRegisteredBanner, setShowRegisteredBanner] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("registered") === "1") {
-      setShowRegisteredBanner(true);
-      window.history.replaceState({}, "", window.location.pathname);
-    }
+    fetch("/api/tournaments")
+      .then(r => r.json())
+      .then(d => setTournamentList((d.tournaments ?? []).map(rowToTournament)))
+      .catch(() => {})
+      .finally(() => setLoadingTournaments(false));
   }, []);
+
+  const upcomingTournaments = tournamentList.filter(t => t.status === "upcoming");
+  const completedTournaments = tournamentList.filter(t => t.status === "completed");
 
   const openRegister = (t: Tournament) => { setRegisterTarget(t); setRegisterOpen(true); };
   const closeRegister = () => setRegisterOpen(false);
 
-  const upcomingTournaments = tournaments.filter(t => t.status === "upcoming");
-
   return (
     <div className="min-h-screen bg-background">
-      {showRegisteredBanner && (
-        <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-green-500 text-white px-4 py-3 text-center text-sm font-bold flex items-center justify-center gap-3"
-        >
-          <Check className="h-4 w-4 shrink-0" />
-          Payment confirmed — you're registered! Check your email for details.
-          <button onClick={() => setShowRegisteredBanner(false)} className="ml-2 opacity-70 hover:opacity-100 transition-opacity">
-            <X className="h-4 w-4" />
-          </button>
-        </motion.div>
-      )}
-
-      {/* Hero */}
       <div className="bg-primary text-primary-foreground py-14 md:py-20">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <p className="text-accent font-bold text-xs uppercase tracking-[0.3em] mb-2">Project Handball</p>
             <h1 className="font-display text-5xl md:text-6xl font-black uppercase tracking-tight mb-4">Tournaments</h1>
             <p className="text-primary-foreground/70 text-lg max-w-2xl">
-              Compete, rank up, and rep the culture. All upcoming events are hosted by Project Handball. Sign up and show what you've got.
+              Compete in official Project Handball tournaments. Singles and doubles brackets, free and paid entry, for all skill levels across New York City.
             </p>
+            <div className="mt-6 flex flex-wrap gap-4 text-sm text-primary-foreground/60">
+              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> Free & paid tournaments</span>
+              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> Singles & doubles</span>
+              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> Earn S Rank by winning</span>
+            </div>
           </motion.div>
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="container mx-auto px-4 py-12">
         <Tabs defaultValue="upcoming">
           <TabsList className="mb-10 h-12 p-1 bg-muted rounded-xl">
             <TabsTrigger value="upcoming" className="h-10 px-8 font-bold uppercase tracking-wider text-sm rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">
-              Upcoming Tournaments
+              Upcoming
             </TabsTrigger>
-            <TabsTrigger value="leaderboards" className="h-10 px-8 font-bold uppercase tracking-wider text-sm rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="leaderboard" className="h-10 px-8 font-bold uppercase tracking-wider text-sm rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">
               Leaderboards
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming">
-            {upcomingTournaments.length === 0 ? (
+            {loadingTournaments ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="h-8 w-8 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+              </div>
+            ) : upcomingTournaments.length === 0 ? (
               <div className="py-20 text-center">
                 <Trophy className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
                 <p className="font-bold text-primary mb-2">No upcoming tournaments</p>
-                <p className="text-sm text-muted-foreground">Check back soon — we host events regularly.</p>
+                <p className="text-sm text-muted-foreground">Check back soon — new events are added regularly.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <AnimatePresence>
-                  {upcomingTournaments.map(t => (
-                    <TournamentCard key={t.id} tournament={t} onRegister={openRegister} />
-                  ))}
-                </AnimatePresence>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {upcomingTournaments.map(t => (
+                  <TournamentCard key={t.id} tournament={t} onRegister={openRegister} />
+                ))}
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="leaderboards">
+          <TabsContent value="leaderboard">
             <Leaderboard />
           </TabsContent>
         </Tabs>

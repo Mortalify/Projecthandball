@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   LogOut, Trophy, Calendar, ShoppingBag, ChevronRight, Star,
   ShieldCheck, Users, ClipboardList, Lock, Eye, EyeOff, KeyRound, CheckCircle2,
+  Plus, Pencil, Trash2, Settings,
 } from "lucide-react";
 
 interface TournamentReg {
@@ -70,6 +71,48 @@ interface AdminData {
   resetRequests: ResetRequest[];
 }
 
+interface TournamentEvent {
+  id: number;
+  slug: string;
+  name: string;
+  date: string;
+  time: string;
+  location: string;
+  borough: string;
+  type: string;
+  is_paid: boolean;
+  entry_fee: number;
+  description: string;
+  max_participants: number;
+  status: string;
+}
+
+interface ClinicEvent {
+  id: number;
+  slug: string;
+  name: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  borough: string;
+  age_group: string;
+  description: string;
+  max_participants: number;
+  status: string;
+}
+
+const BLANK_TOURNAMENT: Omit<TournamentEvent, "id" | "slug"> = {
+  name: "", date: "", time: "", location: "", borough: "",
+  type: "singles", is_paid: false, entry_fee: 0, description: "",
+  max_participants: 32, status: "upcoming",
+};
+
+const BLANK_CLINIC: Omit<ClinicEvent, "id" | "slug"> = {
+  name: "", date: "", start_time: "", end_time: "", location: "", borough: "",
+  age_group: "youth", description: "", max_participants: 24, status: "upcoming",
+};
+
 const RANK_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
   s:        { label: "S Rank", color: "text-purple-700", bg: "bg-purple-100", border: "border-purple-300" },
   a:        { label: "A Rank", color: "text-yellow-700", bg: "bg-yellow-100", border: "border-yellow-300" },
@@ -95,7 +138,17 @@ export default function Account() {
 
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [adminFetching, setAdminFetching] = useState(false);
-  const [adminSubTab, setAdminSubTab] = useState<"users" | "tournaments" | "clinics" | "resets">("users");
+  const [adminSubTab, setAdminSubTab] = useState<"users" | "tournaments" | "clinics" | "resets" | "manage-tournaments" | "manage-clinics">("users");
+
+  // Event management state
+  const [tournamentEvents, setTournamentEvents] = useState<TournamentEvent[]>([]);
+  const [clinicEvents, setClinicEvents] = useState<ClinicEvent[]>([]);
+  const [eventsFetching, setEventsFetching] = useState(false);
+  const [editingTournament, setEditingTournament] = useState<Partial<TournamentEvent> | null>(null);
+  const [editingClinic, setEditingClinic] = useState<Partial<ClinicEvent> | null>(null);
+  const [eventSaving, setEventSaving] = useState(false);
+  const [eventError, setEventError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: "tournament" | "clinic"; id: number; name: string } | null>(null);
 
   const [resetTarget, setResetTarget] = useState<ResetRequest | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -140,6 +193,109 @@ export default function Account() {
       .catch(() => {})
       .finally(() => setAdminFetching(false));
   }, [tab, token, adminData]);
+
+  const fetchEvents = async () => {
+    if (!token) return;
+    setEventsFetching(true);
+    try {
+      const [tr, cr] = await Promise.all([
+        fetch("/api/admin/manage-tournaments", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+        fetch("/api/admin/manage-clinics", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      ]);
+      setTournamentEvents(tr.tournaments ?? []);
+      setClinicEvents(cr.clinics ?? []);
+    } catch {}
+    finally { setEventsFetching(false); }
+  };
+
+  useEffect(() => {
+    if ((adminSubTab === "manage-tournaments" || adminSubTab === "manage-clinics") && token) {
+      fetchEvents();
+    }
+  }, [adminSubTab, token]);
+
+  const saveTournament = async () => {
+    if (!token || !editingTournament) return;
+    setEventSaving(true); setEventError(null);
+    const isNew = !editingTournament.id;
+    try {
+      const res = await fetch("/api/admin/manage-tournaments", {
+        method: isNew ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          ...editingTournament,
+          isPaid: editingTournament.is_paid,
+          entryFee: editingTournament.entry_fee,
+          maxParticipants: editingTournament.max_participants,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      setEditingTournament(null);
+      await fetchEvents();
+    } catch (err: any) {
+      setEventError(err.message ?? "Failed to save");
+    } finally { setEventSaving(false); }
+  };
+
+  const deleteTournament = async (id: number) => {
+    if (!token) return;
+    setEventSaving(true); setEventError(null);
+    try {
+      const res = await fetch("/api/admin/manage-tournaments", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      setDeleteConfirm(null);
+      await fetchEvents();
+    } catch (err: any) {
+      setEventError(err.message ?? "Failed to delete");
+    } finally { setEventSaving(false); }
+  };
+
+  const saveClinic = async () => {
+    if (!token || !editingClinic) return;
+    setEventSaving(true); setEventError(null);
+    const isNew = !editingClinic.id;
+    try {
+      const res = await fetch("/api/admin/manage-clinics", {
+        method: isNew ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          ...editingClinic,
+          startTime: editingClinic.start_time,
+          endTime: editingClinic.end_time,
+          ageGroup: editingClinic.age_group,
+          maxParticipants: editingClinic.max_participants,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      setEditingClinic(null);
+      await fetchEvents();
+    } catch (err: any) {
+      setEventError(err.message ?? "Failed to save");
+    } finally { setEventSaving(false); }
+  };
+
+  const deleteClinic = async (id: number) => {
+    if (!token) return;
+    setEventSaving(true); setEventError(null);
+    try {
+      const res = await fetch("/api/admin/manage-clinics", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      setDeleteConfirm(null);
+      await fetchEvents();
+    } catch (err: any) {
+      setEventError(err.message ?? "Failed to delete");
+    } finally { setEventSaving(false); }
+  };
 
   const handleResetPassword = async () => {
     if (!resetTarget || !token) return;
@@ -428,19 +584,21 @@ export default function Account() {
 
             {/* Sub-tab selector */}
             <div className="flex gap-2 flex-wrap">
-              {([
-                { key: "users", label: "Users", icon: <Users className="h-4 w-4" /> },
-                { key: "tournaments", label: "Tournament Registrations", icon: <Trophy className="h-4 w-4" /> },
-                { key: "clinics", label: "Clinic Registrations", icon: <ClipboardList className="h-4 w-4" /> },
-                { key: "resets", label: "Password Resets", icon: <KeyRound className="h-4 w-4" />, badge: (adminData?.resetRequests ?? []).filter(r => r.status === "pending").length },
-              ] as const).map(st => (
+              {[
+                { key: "users" as const, label: "Users", icon: <Users className="h-4 w-4" /> },
+                { key: "tournaments" as const, label: "Tournament Regs", icon: <Trophy className="h-4 w-4" /> },
+                { key: "clinics" as const, label: "Clinic Regs", icon: <ClipboardList className="h-4 w-4" /> },
+                { key: "resets" as const, label: "Password Resets", icon: <KeyRound className="h-4 w-4" />, badge: (adminData?.resetRequests ?? []).filter(r => r.status === "pending").length },
+                { key: "manage-tournaments" as const, label: "Manage Tournaments", icon: <Settings className="h-4 w-4" /> },
+                { key: "manage-clinics" as const, label: "Manage Clinics", icon: <Settings className="h-4 w-4" /> },
+              ].map(st => (
                 <button
                   key={st.key}
                   onClick={() => setAdminSubTab(st.key)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${adminSubTab === st.key ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
                 >
                   {st.icon} {st.label}
-                  {"badge" in st && st.badge > 0 && (
+                  {"badge" in st && (st.badge ?? 0) > 0 && (
                     <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-black rounded-full bg-red-500 text-white">{st.badge}</span>
                   )}
                 </button>
@@ -619,11 +777,358 @@ export default function Account() {
                     )}
                   </div>
                 )}
+
+                {/* MANAGE TOURNAMENTS */}
+                {adminSubTab === "manage-tournaments" && (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-display font-black text-lg uppercase tracking-tight text-primary">Manage Tournaments</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">{tournamentEvents.length} event{tournamentEvents.length !== 1 ? "s" : ""}</p>
+                      </div>
+                      <Button
+                        onClick={() => { setEventError(null); setEditingTournament({ ...BLANK_TOURNAMENT }); }}
+                        className="bg-primary hover:bg-primary/90 text-white font-bold gap-2"
+                      >
+                        <Plus className="h-4 w-4" /> Add Tournament
+                      </Button>
+                    </div>
+
+                    {eventsFetching ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="h-8 w-8 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+                      </div>
+                    ) : tournamentEvents.length === 0 ? (
+                      <div className="rounded-2xl border border-border/60 bg-card p-10 text-center shadow-sm">
+                        <Trophy className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                        <p className="font-bold text-primary">No tournaments yet</p>
+                        <p className="text-sm text-muted-foreground mt-1">Click "Add Tournament" to create the first one.</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted/50">
+                              <tr>
+                                {["Name", "Date", "Type", "Entry", "Location", "Status", ""].map(h => (
+                                  <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {tournamentEvents.map((t, i) => (
+                                <tr key={t.id} className={`border-t border-border/40 ${i % 2 === 0 ? "" : "bg-muted/20"}`}>
+                                  <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{t.name}</td>
+                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{t.date}</td>
+                                  <td className="px-4 py-3 text-muted-foreground capitalize">{t.type}</td>
+                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                                    {t.is_paid ? `$${t.entry_fee}` : "Free"}
+                                  </td>
+                                  <td className="px-4 py-3 text-muted-foreground">{t.location}</td>
+                                  <td className="px-4 py-3">
+                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${t.status === "upcoming" ? "bg-green-100 text-green-700 border border-green-200" : "bg-muted text-muted-foreground border border-border"}`}>
+                                      {t.status}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => { setEventError(null); setEditingTournament({ ...t }); }}
+                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                        title="Edit"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => setDeleteConfirm({ type: "tournament", id: t.id, name: t.name })}
+                                        className="text-muted-foreground hover:text-red-500 transition-colors"
+                                        title="Delete"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tournament edit form */}
+                    {editingTournament && (
+                      <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-8 overflow-y-auto">
+                        <div className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-lg my-auto">
+                          <h2 className="font-display font-black text-xl uppercase tracking-tight text-primary mb-6">
+                            {editingTournament.id ? "Edit Tournament" : "New Tournament"}
+                          </h2>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {[
+                              { label: "Name", field: "name", type: "text", colSpan: 2 },
+                              { label: "Date (YYYY-MM-DD)", field: "date", type: "date" },
+                              { label: "Time (e.g. 10:00 AM)", field: "time", type: "text" },
+                              { label: "Location", field: "location", type: "text" },
+                              { label: "Borough", field: "borough", type: "text" },
+                              { label: "Max Participants", field: "max_participants", type: "number" },
+                              { label: "Entry Fee ($)", field: "entry_fee", type: "number" },
+                            ].map(({ label, field, type, colSpan }) => (
+                              <div key={field} className={colSpan === 2 ? "sm:col-span-2" : ""}>
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">{label}</label>
+                                <input
+                                  type={type}
+                                  value={(editingTournament as any)[field] ?? ""}
+                                  onChange={e => setEditingTournament(prev => ({ ...prev!, [field]: type === "number" ? Number(e.target.value) : e.target.value }))}
+                                  className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                />
+                              </div>
+                            ))}
+                            <div>
+                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Type</label>
+                              <select
+                                value={editingTournament.type ?? "singles"}
+                                onChange={e => setEditingTournament(prev => ({ ...prev!, type: e.target.value }))}
+                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                              >
+                                <option value="singles">Singles</option>
+                                <option value="doubles">Doubles</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Status</label>
+                              <select
+                                value={editingTournament.status ?? "upcoming"}
+                                onChange={e => setEditingTournament(prev => ({ ...prev!, status: e.target.value }))}
+                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                              >
+                                <option value="upcoming">Upcoming</option>
+                                <option value="completed">Completed</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-2 flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                id="t-is-paid"
+                                checked={!!editingTournament.is_paid}
+                                onChange={e => setEditingTournament(prev => ({ ...prev!, is_paid: e.target.checked }))}
+                                className="h-4 w-4 accent-primary"
+                              />
+                              <label htmlFor="t-is-paid" className="text-sm font-semibold">Paid tournament</label>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Description</label>
+                              <textarea
+                                rows={3}
+                                value={editingTournament.description ?? ""}
+                                onChange={e => setEditingTournament(prev => ({ ...prev!, description: e.target.value }))}
+                                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                              />
+                            </div>
+                          </div>
+                          {eventError && <p className="text-sm text-red-600 mt-3 font-medium">{eventError}</p>}
+                          <div className="flex gap-3 mt-6">
+                            <Button variant="outline" className="flex-1" onClick={() => { setEditingTournament(null); setEventError(null); }}>Cancel</Button>
+                            <Button disabled={eventSaving} onClick={saveTournament} className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold">
+                              {eventSaving ? "Saving..." : "Save Tournament"}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* MANAGE CLINICS */}
+                {adminSubTab === "manage-clinics" && (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-display font-black text-lg uppercase tracking-tight text-primary">Manage Clinics</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">{clinicEvents.length} event{clinicEvents.length !== 1 ? "s" : ""}</p>
+                      </div>
+                      <Button
+                        onClick={() => { setEventError(null); setEditingClinic({ ...BLANK_CLINIC }); }}
+                        className="bg-primary hover:bg-primary/90 text-white font-bold gap-2"
+                      >
+                        <Plus className="h-4 w-4" /> Add Clinic
+                      </Button>
+                    </div>
+
+                    {eventsFetching ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="h-8 w-8 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+                      </div>
+                    ) : clinicEvents.length === 0 ? (
+                      <div className="rounded-2xl border border-border/60 bg-card p-10 text-center shadow-sm">
+                        <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                        <p className="font-bold text-primary">No clinics yet</p>
+                        <p className="text-sm text-muted-foreground mt-1">Click "Add Clinic" to create the first one.</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted/50">
+                              <tr>
+                                {["Name", "Date", "Time", "Group", "Location", "Status", ""].map(h => (
+                                  <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {clinicEvents.map((c, i) => (
+                                <tr key={c.id} className={`border-t border-border/40 ${i % 2 === 0 ? "" : "bg-muted/20"}`}>
+                                  <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{c.name}</td>
+                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{c.date}</td>
+                                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{c.start_time}–{c.end_time}</td>
+                                  <td className="px-4 py-3 text-muted-foreground capitalize">{c.age_group}</td>
+                                  <td className="px-4 py-3 text-muted-foreground">{c.location}</td>
+                                  <td className="px-4 py-3">
+                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${c.status === "upcoming" ? "bg-green-100 text-green-700 border border-green-200" : "bg-muted text-muted-foreground border border-border"}`}>
+                                      {c.status}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => { setEventError(null); setEditingClinic({ ...c }); }}
+                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                        title="Edit"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => setDeleteConfirm({ type: "clinic", id: c.id, name: c.name })}
+                                        className="text-muted-foreground hover:text-red-500 transition-colors"
+                                        title="Delete"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Clinic edit form */}
+                    {editingClinic && (
+                      <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-8 overflow-y-auto">
+                        <div className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-lg my-auto">
+                          <h2 className="font-display font-black text-xl uppercase tracking-tight text-primary mb-6">
+                            {editingClinic.id ? "Edit Clinic" : "New Clinic"}
+                          </h2>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {[
+                              { label: "Name", field: "name", type: "text", colSpan: 2 },
+                              { label: "Date (YYYY-MM-DD)", field: "date", type: "date" },
+                              { label: "Start Time (e.g. 10:00 AM)", field: "start_time", type: "text" },
+                              { label: "End Time (e.g. 12:00 PM)", field: "end_time", type: "text" },
+                              { label: "Location", field: "location", type: "text" },
+                              { label: "Borough", field: "borough", type: "text" },
+                              { label: "Max Participants", field: "max_participants", type: "number" },
+                            ].map(({ label, field, type, colSpan }) => (
+                              <div key={field} className={colSpan === 2 ? "sm:col-span-2" : ""}>
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">{label}</label>
+                                <input
+                                  type={type}
+                                  value={(editingClinic as any)[field] ?? ""}
+                                  onChange={e => setEditingClinic(prev => ({ ...prev!, [field]: type === "number" ? Number(e.target.value) : e.target.value }))}
+                                  className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                                />
+                              </div>
+                            ))}
+                            <div>
+                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Age Group</label>
+                              <select
+                                value={editingClinic.age_group ?? "youth"}
+                                onChange={e => setEditingClinic(prev => ({ ...prev!, age_group: e.target.value }))}
+                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                              >
+                                <option value="youth">Youth (21 & under)</option>
+                                <option value="senior">Senior (22+)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Status</label>
+                              <select
+                                value={editingClinic.status ?? "upcoming"}
+                                onChange={e => setEditingClinic(prev => ({ ...prev!, status: e.target.value }))}
+                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                              >
+                                <option value="upcoming">Upcoming</option>
+                                <option value="completed">Completed</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">Description</label>
+                              <textarea
+                                rows={3}
+                                value={editingClinic.description ?? ""}
+                                onChange={e => setEditingClinic(prev => ({ ...prev!, description: e.target.value }))}
+                                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                              />
+                            </div>
+                          </div>
+                          {eventError && <p className="text-sm text-red-600 mt-3 font-medium">{eventError}</p>}
+                          <div className="flex gap-3 mt-6">
+                            <Button variant="outline" className="flex-1" onClick={() => { setEditingClinic(null); setEventError(null); }}>Cancel</Button>
+                            <Button disabled={eventSaving} onClick={saveClinic} className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold">
+                              {eventSaving ? "Saving..." : "Save Clinic"}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </motion.div>
         )}
       </div>
+
+      {/* Delete confirmation modal */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-sm"
+            >
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center mb-4">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <h2 className="font-display font-black text-lg uppercase tracking-tight text-primary mb-1">Delete {deleteConfirm.type === "tournament" ? "Tournament" : "Clinic"}?</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                <strong className="text-foreground">{deleteConfirm.name}</strong> will be permanently removed. This cannot be undone.
+              </p>
+              {eventError && <p className="text-sm text-red-600 mb-4 font-medium">{eventError}</p>}
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+                <Button
+                  disabled={eventSaving}
+                  onClick={() => deleteConfirm.type === "tournament" ? deleteTournament(deleteConfirm.id) : deleteClinic(deleteConfirm.id)}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
+                >
+                  {eventSaving ? "Deleting..." : "Yes, Delete"}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Reset password modal */}
       <AnimatePresence>
