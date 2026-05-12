@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu, X, User, LogOut, ChevronDown } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
-import { useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import logoSrc from "@assets/project_handball_logo_1778253221361.png";
@@ -9,10 +10,23 @@ import logoSrc from "@assets/project_handball_logo_1778253221361.png";
 export function Navbar() {
   const [location] = useLocation();
   const { totalItems } = useCart();
+  const { player, logout, isLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMenu = () => setMobileMenuOpen(false);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const navLinks = [
     { href: "/", label: "Home", active: location === "/" },
@@ -20,6 +34,8 @@ export function Navbar() {
     { href: "/clinics", label: "Clinics", active: location === "/clinics", beta: true },
     { href: "/shop", label: "Shop All", active: location === "/shop" || location.startsWith("/product") },
   ];
+
+  const firstName = player?.name?.split(" ")[0] ?? "";
 
   return (
     <>
@@ -53,6 +69,62 @@ export function Navbar() {
             </nav>
 
             <div className="flex items-center gap-3">
+              {/* Account area */}
+              {!isLoading && (
+                player ? (
+                  <div className="relative hidden md:block" ref={accountRef}>
+                    <button
+                      onClick={() => setAccountOpen(o => !o)}
+                      className="flex items-center gap-2 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-sm font-semibold"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0">
+                        <span className="text-white text-xs font-black leading-none">
+                          {firstName[0]?.toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-foreground">{firstName}</span>
+                      <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${accountOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {accountOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 mt-2 w-44 bg-card border border-border/60 rounded-xl shadow-lg py-1 z-50"
+                        >
+                          <div className="px-3 py-2 border-b border-border/50">
+                            <p className="text-xs font-bold text-primary truncate">{player.name}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{player.email}</p>
+                          </div>
+                          <button
+                            onClick={() => { logout(); setAccountOpen(false); }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors rounded-b-xl"
+                          >
+                            <LogOut className="h-4 w-4 text-muted-foreground" />
+                            Sign out
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link href="/login">
+                      <Button variant="ghost" size="sm" className="h-9 px-4 font-semibold text-sm">
+                        Log in
+                      </Button>
+                    </Link>
+                    <Link href="/signup">
+                      <Button size="sm" className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-bold text-sm rounded-xl">
+                        Sign up
+                      </Button>
+                    </Link>
+                  </div>
+                )
+              )}
+
               <Link href="/cart" data-testid="link-cart" className="relative group">
                 <div className="flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-muted">
                   <ShoppingBag className="h-5 w-5" />
@@ -105,6 +177,43 @@ export function Navbar() {
                   )}
                 </Link>
               ))}
+
+              <div className="mt-4 pt-4 border-t border-border/50 flex flex-col gap-2">
+                {player ? (
+                  <>
+                    <div className="flex items-center gap-3 px-4 py-2">
+                      <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
+                        <span className="text-white text-sm font-black">{firstName[0]?.toUpperCase()}</span>
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-primary">{player.name}</p>
+                        <p className="text-xs text-muted-foreground">{player.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { logout(); closeMenu(); }}
+                      className="flex items-center gap-2 py-3 px-4 text-base font-bold rounded-lg hover:bg-muted transition-colors text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={closeMenu}>
+                      <div className="flex items-center gap-2 py-3 px-4 text-base font-bold rounded-lg hover:bg-muted transition-colors">
+                        <User className="h-4 w-4" />
+                        Log in
+                      </div>
+                    </Link>
+                    <Link href="/signup" onClick={closeMenu}>
+                      <div className="py-3 px-4 text-base font-bold rounded-lg bg-accent text-white text-center uppercase tracking-widest">
+                        Sign up
+                      </div>
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

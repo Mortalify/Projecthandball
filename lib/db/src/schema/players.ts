@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, date, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -12,6 +12,8 @@ export const playersTable = pgTable("players", {
   rank: text("rank").notNull().default("unranked"),
   wins: integer("wins").notNull().default(0),
   losses: integer("losses").notNull().default(0),
+  phone: text("phone"),
+  dateOfBirth: date("date_of_birth"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -24,6 +26,8 @@ export const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  phone: z.string().min(7, "Please enter a valid phone number").optional(),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date of birth").optional(),
 });
 
 export const loginSchema = z.object({

@@ -7,13 +7,15 @@ export type AuthPlayer = {
   name: string;
   email: string;
   rank: string;
+  phone?: string | null;
+  dateOfBirth?: string | null;
 };
 
 type AuthContextValue = {
   player: AuthPlayer | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone?: string, dateOfBirth?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 };
@@ -67,10 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPlayer(data.player);
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, phone?: string, dateOfBirth?: string) => {
     const data = await apiFetch("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, phone, dateOfBirth }),
     });
     localStorage.setItem(TOKEN_KEY, data.token);
     localStorage.setItem(PLAYER_KEY, JSON.stringify(data.player));

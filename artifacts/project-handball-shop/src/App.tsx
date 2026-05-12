@@ -15,6 +15,8 @@ import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Tournaments from "@/pages/tournaments";
 import Clinics from "@/pages/clinics";
+import Login from "@/pages/login";
+import Signup from "@/pages/signup";
 import CheckoutSuccess from "@/pages/checkout-success";
 import CheckoutCancel from "@/pages/checkout-cancel";
 import NotFound from "@/pages/not-found";
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/cart" component={Cart} />
       <Route path="/tournaments" component={Tournaments} />
       <Route path="/clinics" component={Clinics} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
       <Route path="/checkout/success" component={CheckoutSuccess} />
       <Route path="/checkout/cancel" component={CheckoutCancel} />
       <Route component={NotFound} />

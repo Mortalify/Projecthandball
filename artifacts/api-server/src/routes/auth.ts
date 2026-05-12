@@ -20,7 +20,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
 
-  const { name, email, password } = parsed.data;
+  const { name, email, password, phone, dateOfBirth } = parsed.data;
 
   const existing = await db.select().from(playersTable).where(eq(playersTable.email, email.toLowerCase())).limit(1);
   if (existing.length > 0) {
@@ -36,6 +36,8 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     rank: "unranked",
     wins: 0,
     losses: 0,
+    phone: phone ?? null,
+    dateOfBirth: dateOfBirth ?? null,
   }).returning();
 
   if (!player) {
@@ -45,7 +47,17 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 
   const token = signToken({ id: player.id, email: player.email, name: player.name, rank: player.rank });
   req.log.info({ playerId: player.id }, "Player registered");
-  res.status(201).json({ token, player: { id: player.id, name: player.name, email: player.email, rank: player.rank } });
+  res.status(201).json({
+    token,
+    player: {
+      id: player.id,
+      name: player.name,
+      email: player.email,
+      rank: player.rank,
+      phone: player.phone,
+      dateOfBirth: player.dateOfBirth,
+    },
+  });
 });
 
 router.post("/auth/login", async (req, res): Promise<void> => {
@@ -71,7 +83,17 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 
   const token = signToken({ id: player.id, email: player.email, name: player.name, rank: player.rank });
   req.log.info({ playerId: player.id }, "Player logged in");
-  res.json({ token, player: { id: player.id, name: player.name, email: player.email, rank: player.rank } });
+  res.json({
+    token,
+    player: {
+      id: player.id,
+      name: player.name,
+      email: player.email,
+      rank: player.rank,
+      phone: player.phone,
+      dateOfBirth: player.dateOfBirth,
+    },
+  });
 });
 
 router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
@@ -80,6 +102,8 @@ router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
     name: playersTable.name,
     email: playersTable.email,
     rank: playersTable.rank,
+    phone: playersTable.phone,
+    dateOfBirth: playersTable.dateOfBirth,
     wins: playersTable.wins,
     losses: playersTable.losses,
     createdAt: playersTable.createdAt,
