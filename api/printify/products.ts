@@ -5,7 +5,7 @@ type PrintifyColorValue = { id: number; title: string; colors: string[] };
 type PrintifyOption = { name: string; type: string; values: PrintifyColorValue[] };
 type PrintifyVariant = { id: number; price: number; is_enabled: boolean; options: number[] };
 type PrintifyImage = { src: string; variant_ids: number[]; is_default: boolean; is_selected_for_publishing: boolean };
-type PrintifyProduct = { id: string; title: string; description: string; tags: string[]; images: PrintifyImage[]; variants: PrintifyVariant[]; options: PrintifyOption[]; visible: boolean };
+type PrintifyProduct = { id: string; title: string; description: string; tags: string[]; images: PrintifyImage[]; variants: PrintifyVariant[]; options: PrintifyOption[]; visible: boolean; status?: string };
 function inferCategory(tags: string[]): string {
   const lower = tags.map((t) => t.toLowerCase());
   if (lower.some((t) => t.includes("hoodie") || t.includes("sweatshirt"))) return "Hoodies";
@@ -62,7 +62,7 @@ export default async function handler(req: any, res: any) {
       all.push(...data.data);
       if (all.length >= data.total) break;
     }
-    const products = all.filter((p) => p.visible).map(adaptProduct);
+    const products = all.filter((p) => p.status === "published" || (p.status === undefined && p.visible)).map(adaptProduct);
     res.json(products);
   } catch {
     res.status(502).json({ error: "Failed to fetch products" });
