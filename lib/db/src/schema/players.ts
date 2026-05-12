@@ -14,6 +14,7 @@ export const playersTable = pgTable("players", {
   losses: integer("losses").notNull().default(0),
   phone: text("phone"),
   dateOfBirth: date("date_of_birth"),
+  isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
