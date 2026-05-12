@@ -25,3 +25,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## User Preferences
+
+- Always ask for confirmation before making any code changes. If the user asks "could I..." or "what if..." treat it as a question, not a request to build.
