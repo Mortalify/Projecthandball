@@ -157,6 +157,9 @@ importers:
 
   .:
     dependencies:
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
       stripe:
         specifier: 20.0.0
         version: 20.0.0(@types/node@25.3.5)
@@ -167,6 +170,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 25.3.5
+      '@types/pg':
+        specifier: ^8.11.11
+        version: 8.18.0
       '@vercel/node':
         specifier: ^5.7.15
         version: 5.7.15(rollup@4.59.0)

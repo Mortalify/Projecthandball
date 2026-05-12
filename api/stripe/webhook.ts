@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { Client } from "pg";
 
 const PRINTIFY_API = "https://api.printify.com/v1";
 
@@ -77,6 +78,46 @@ async function createPrintifyOrder(session: Stripe.Checkout.Session): Promise<vo
   }
 }
 
+async function saveTournamentRegistration(meta: Record<string, string>): Promise<void> {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.error("DATABASE_URL not set — cannot save tournament registration");
+    return;
+  }
+
+  const client = new Client({ connectionString: dbUrl });
+  try {
+    await client.connect();
+
+    const existing = await client.query(
+      "SELECT id FROM registrations WHERE tournament_id = $1 AND email = $2 LIMIT 1",
+      [meta.tournamentId, meta.email.toLowerCase()],
+    );
+    if ((existing.rowCount ?? 0) > 0) {
+      console.log("Tournament registration already exists, skipping duplicate");
+      return;
+    }
+
+    await client.query(
+      `INSERT INTO registrations (tournament_id, name, email, phone, partner_name, is_paid_tournament)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        meta.tournamentId,
+        meta.name,
+        meta.email.toLowerCase(),
+        meta.phone,
+        meta.partnerName || null,
+        true,
+      ],
+    );
+    console.log("Tournament registration saved:", meta.tournamentId, meta.email);
+  } catch (err) {
+    console.error("Failed to save tournament registration:", err);
+  } finally {
+    await client.end();
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -107,9 +148,17 @@ export default async function handler(req: any, res: any) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    createPrintifyOrder(session).catch((err) =>
-      console.error("Printify order creation failed:", err),
-    );
+    const meta = session.metadata ?? {};
+
+    if (meta.type === "tournament") {
+      saveTournamentRegistration(meta).catch((err) =>
+        console.error("Tournament registration save failed:", err),
+      );
+    } else {
+      createPrintifyOrder(session).catch((err) =>
+        console.error("Printify order creation failed:", err),
+      );
+    }
   }
 
   res.status(200).json({ received: true });

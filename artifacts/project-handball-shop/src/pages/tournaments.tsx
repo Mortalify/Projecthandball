@@ -227,6 +227,35 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
     setError("");
     try {
       const token = localStorage.getItem("ph_token");
+
+      if (tournament.isPaid) {
+        const res = await fetch("/api/registrations/tournament-checkout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            tournamentId: tournament.id,
+            tournamentName: tournament.name,
+            entryFee: tournament.entryFee,
+            name,
+            email,
+            phone,
+            partnerName: tournament.type === "doubles" ? partnerName : undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "Failed to start checkout");
+          return;
+        }
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+      }
+
       const res = await fetch("/api/registrations", {
         method: "POST",
         headers: {
@@ -239,7 +268,7 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
           email,
           phone,
           partnerName: tournament.type === "doubles" ? partnerName : undefined,
-          isPaidTournament: tournament.isPaid,
+          isPaidTournament: false,
         }),
       });
       const data = await res.json();
@@ -265,7 +294,7 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
           {!success && (
             <DialogDescription>
               {tournament.isPaid
-                ? `$${tournament.entryFee} entry fee collected at check-in. ${tournament.type === "doubles" ? "Include your partner's name below." : ""}`
+                ? `$${tournament.entryFee} entry fee paid online via Stripe. ${tournament.type === "doubles" ? "Include your partner's name below." : ""}`
                 : `Free entry. ${tournament.type === "doubles" ? "Include your partner's name below." : ""}`}
             </DialogDescription>
           )}
@@ -278,9 +307,7 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
             </div>
             <p className="font-bold text-primary mb-1">See you on the court!</p>
             <p className="text-sm text-muted-foreground mb-6">
-              {tournament.isPaid
-                ? `Have your $${tournament.entryFee} ready at check-in. We'll see you ${formatDate(tournament.date)}.`
-                : `We've got you down. See you ${formatDate(tournament.date)} at ${tournament.location}.`}
+              {`We've got you down. See you ${formatDate(tournament.date)} at ${tournament.location}.`}
             </p>
             <Button onClick={onClose} className="bg-primary text-white font-bold uppercase tracking-widest">
               Close
@@ -307,8 +334,9 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
               </div>
             )}
             {tournament.isPaid && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-sm text-yellow-700">
-                <strong>${tournament.entryFee} entry fee</strong> will be collected at check-in on the day of the tournament.
+              <div className="bg-accent/10 border border-accent/20 rounded-xl p-3 text-sm text-accent flex items-start gap-2">
+                <span className="text-base leading-none mt-0.5">💳</span>
+                <span>You'll be redirected to Stripe to pay the <strong>${tournament.entryFee} entry fee</strong> securely online.</span>
               </div>
             )}
             {error && (
@@ -317,7 +345,9 @@ function RegisterModal({ tournament, open, onClose }: { tournament: Tournament |
               </div>
             )}
             <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest h-11">
-              {loading ? "Registering..." : "Confirm Registration"}
+              {loading
+                ? (tournament.isPaid ? "Redirecting to payment..." : "Registering...")
+                : (tournament.isPaid ? `Pay $${tournament.entryFee} & Register` : "Confirm Registration")}
             </Button>
           </form>
         )}
@@ -541,6 +571,15 @@ function Leaderboard() {
 export default function TournamentsPage() {
   const [registerTarget, setRegisterTarget] = useState<Tournament | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [showRegisteredBanner, setShowRegisteredBanner] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("registered") === "1") {
+      setShowRegisteredBanner(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   const openRegister = (t: Tournament) => { setRegisterTarget(t); setRegisterOpen(true); };
   const closeRegister = () => setRegisterOpen(false);
@@ -549,6 +588,20 @@ export default function TournamentsPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {showRegisteredBanner && (
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-green-500 text-white px-4 py-3 text-center text-sm font-bold flex items-center justify-center gap-3"
+        >
+          <Check className="h-4 w-4 shrink-0" />
+          Payment confirmed — you're registered! Check your email for details.
+          <button onClick={() => setShowRegisteredBanner(false)} className="ml-2 opacity-70 hover:opacity-100 transition-opacity">
+            <X className="h-4 w-4" />
+          </button>
+        </motion.div>
+      )}
+
       {/* Hero */}
       <div className="bg-primary text-primary-foreground py-14 md:py-20">
         <div className="container mx-auto px-4">
