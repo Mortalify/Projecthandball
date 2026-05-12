@@ -9,6 +9,7 @@ export type AuthPlayer = {
   rank: string;
   phone?: string | null;
   dateOfBirth?: string | null;
+  isAdmin?: boolean;
 };
 
 type AuthContextValue = {
@@ -17,6 +18,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, phone?: string, dateOfBirth?: string) => Promise<void>;
   logout: () => void;
+  becomeAdmin: (passcode: string) => Promise<void>;
   isLoading: boolean;
 };
 
@@ -87,8 +89,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPlayer(null);
   };
 
+  const becomeAdmin = async (passcode: string) => {
+    const savedToken = localStorage.getItem(TOKEN_KEY);
+    if (!savedToken) throw new Error("Not logged in");
+    const res = await fetch(`/api/auth/become-admin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${savedToken}` },
+      body: JSON.stringify({ passcode }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "Failed");
+    const updated = { ...data.player };
+    localStorage.setItem(PLAYER_KEY, JSON.stringify(updated));
+    setPlayer(updated);
+  };
+
   return (
-    <AuthContext.Provider value={{ player, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ player, token, login, register, logout, becomeAdmin, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

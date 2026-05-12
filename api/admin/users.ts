@@ -21,27 +21,23 @@ export default async function handler(req: any, res: any) {
   const client = createDbClient();
   try {
     await client.connect();
-    const result = await client.query(
-      "SELECT id, name, email, rank, phone, date_of_birth, is_admin FROM players WHERE id = $1 LIMIT 1",
+
+    const adminCheck = await client.query(
+      "SELECT is_admin FROM players WHERE id = $1 LIMIT 1",
       [payload.id],
     );
+    if (!adminCheck.rows[0]?.is_admin) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
-    if (result.rowCount === 0) return res.status(404).json({ error: "User not found" });
+    const result = await client.query(
+      `SELECT id, name, email, rank, wins, losses, phone, is_admin, created_at
+       FROM players
+       ORDER BY created_at DESC`,
+    );
 
-    const player = result.rows[0];
-    return res.status(200).json({
-      player: {
-        id: player.id,
-        name: player.name,
-        email: player.email,
-        rank: player.rank,
-        phone: player.phone,
-        dateOfBirth: player.date_of_birth,
-        isAdmin: player.is_admin,
-      },
-    });
+    return res.status(200).json({ users: result.rows });
   } catch (err: any) {
-    console.error("Me error:", err.message);
     return res.status(500).json({ error: "Server error" });
   } finally {
     await client.end();
