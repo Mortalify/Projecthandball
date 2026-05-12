@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   LogOut, Trophy, Calendar, ShoppingBag, ChevronRight, Star,
-  ShieldCheck, Users, ClipboardList, Lock, Eye, EyeOff,
+  ShieldCheck, Users, ClipboardList, Lock, Eye, EyeOff, KeyRound, CheckCircle2,
 } from "lucide-react";
 
 interface TournamentReg {
@@ -55,10 +55,19 @@ interface AdminUser {
   created_at: string;
 }
 
+interface ResetRequest {
+  id: number;
+  email: string;
+  name: string;
+  status: "pending" | "resolved";
+  created_at: string;
+}
+
 interface AdminData {
   users: AdminUser[];
   tournamentRegistrations: TournamentReg[];
   clinicRegistrations: ClinicReg[];
+  resetRequests: ResetRequest[];
 }
 
 const RANK_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -86,7 +95,14 @@ export default function Account() {
 
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [adminFetching, setAdminFetching] = useState(false);
-  const [adminSubTab, setAdminSubTab] = useState<"users" | "tournaments" | "clinics">("users");
+  const [adminSubTab, setAdminSubTab] = useState<"users" | "tournaments" | "clinics" | "resets">("users");
+
+  const [resetTarget, setResetTarget] = useState<ResetRequest | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordVisible, setNewPasswordVisible] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<number | null>(null);
 
   const [showPasscode, setShowPasscode] = useState(false);
   const [passcode, setPasscode] = useState("");
@@ -113,11 +129,43 @@ export default function Account() {
     Promise.all([
       fetch("/api/admin/users", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
       fetch("/api/admin/registrations", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      fetch("/api/admin/reset-requests", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
     ])
-      .then(([u, r]) => setAdminData({ users: u.users ?? [], tournamentRegistrations: r.tournamentRegistrations ?? [], clinicRegistrations: r.clinicRegistrations ?? [] }))
+      .then(([u, r, rr]) => setAdminData({
+        users: u.users ?? [],
+        tournamentRegistrations: r.tournamentRegistrations ?? [],
+        clinicRegistrations: r.clinicRegistrations ?? [],
+        resetRequests: rr.requests ?? [],
+      }))
       .catch(() => {})
       .finally(() => setAdminFetching(false));
   }, [tab, token, adminData]);
+
+  const handleResetPassword = async () => {
+    if (!resetTarget || !token) return;
+    setResetLoading(true);
+    setResetError(null);
+    try {
+      const res = await fetch("/api/admin/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ requestId: resetTarget.id, email: resetTarget.email, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      setResetSuccess(resetTarget.id);
+      setAdminData(prev => prev ? {
+        ...prev,
+        resetRequests: prev.resetRequests.map(r => r.id === resetTarget.id ? { ...r, status: "resolved" as const } : r),
+      } : prev);
+      setResetTarget(null);
+      setNewPassword("");
+    } catch (err: any) {
+      setResetError(err.message ?? "Failed to reset password");
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const handleBecomeAdmin = async () => {
     setPasscodeLoading(true);
@@ -384,6 +432,7 @@ export default function Account() {
                 { key: "users", label: "Users", icon: <Users className="h-4 w-4" /> },
                 { key: "tournaments", label: "Tournament Registrations", icon: <Trophy className="h-4 w-4" /> },
                 { key: "clinics", label: "Clinic Registrations", icon: <ClipboardList className="h-4 w-4" /> },
+                { key: "resets", label: "Password Resets", icon: <KeyRound className="h-4 w-4" />, badge: (adminData?.resetRequests ?? []).filter(r => r.status === "pending").length },
               ] as const).map(st => (
                 <button
                   key={st.key}
@@ -391,6 +440,9 @@ export default function Account() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${adminSubTab === st.key ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
                 >
                   {st.icon} {st.label}
+                  {"badge" in st && st.badge > 0 && (
+                    <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-black rounded-full bg-red-500 text-white">{st.badge}</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -525,11 +577,122 @@ export default function Account() {
                     </div>
                   </div>
                 )}
+
+                {/* PASSWORD RESET REQUESTS */}
+                {adminSubTab === "resets" && (
+                  <div className="flex flex-col gap-4">
+                    {(adminData?.resetRequests.length ?? 0) === 0 ? (
+                      <div className="rounded-2xl border border-border/60 bg-card p-10 text-center shadow-sm">
+                        <KeyRound className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                        <p className="font-bold text-primary">No reset requests</p>
+                        <p className="text-sm text-muted-foreground mt-1">Password reset requests from users will appear here</p>
+                      </div>
+                    ) : (
+                      (adminData?.resetRequests ?? []).map(r => (
+                        <div key={r.id} className={`rounded-2xl border bg-card p-5 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 ${r.status === "pending" ? "border-orange-200 bg-orange-50/30" : "border-border/60"}`}>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-bold text-sm text-primary">{r.name}</p>
+                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${r.status === "pending" ? "bg-orange-100 text-orange-700 border border-orange-200" : "bg-green-100 text-green-700 border border-green-200"}`}>
+                                {r.status === "pending" ? "Pending" : "Resolved"}
+                              </span>
+                              {resetSuccess === r.id && (
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-green-600">
+                                  <CheckCircle2 className="h-3 w-3" /> Done
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">{r.email}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Requested {formatDate(r.created_at)}</p>
+                          </div>
+                          {r.status === "pending" && (
+                            <Button
+                              size="sm"
+                              onClick={() => { setResetTarget(r); setNewPassword(""); setResetError(null); }}
+                              className="bg-primary hover:bg-primary/90 text-white font-bold shrink-0"
+                            >
+                              Reset Password
+                            </Button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </>
             )}
           </motion.div>
         )}
       </div>
+
+      {/* Reset password modal */}
+      <AnimatePresence>
+        {resetTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={e => { if (e.target === e.currentTarget) { setResetTarget(null); setNewPassword(""); setResetError(null); } }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card rounded-2xl border border-border shadow-xl p-8 w-full max-w-sm"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <KeyRound className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="font-display font-black text-lg uppercase tracking-tight text-primary">Reset Password</h2>
+                  <p className="text-xs text-muted-foreground">For {resetTarget.name}</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mb-5 mt-1">{resetTarget.email}</p>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-foreground">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={newPasswordVisible ? "text" : "password"}
+                      value={newPassword}
+                      onChange={e => { setNewPassword(e.target.value); setResetError(null); }}
+                      placeholder="Min. 6 characters"
+                      className="w-full h-11 px-4 pr-10 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setNewPasswordVisible(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {newPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {resetError && <p className="text-sm text-destructive font-medium">{resetError}</p>}
+
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={() => { setResetTarget(null); setNewPassword(""); setResetError(null); }}>
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold"
+                    onClick={handleResetPassword}
+                    disabled={resetLoading || newPassword.length < 6}
+                  >
+                    {resetLoading ? "Saving…" : "Set Password"}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Admin passcode modal */}
       <AnimatePresence>

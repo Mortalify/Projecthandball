@@ -5,7 +5,51 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import logoSrc from "@assets/project_handball_logo_1778253221361.png";
+
+function PasswordInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+  required,
+  minLength,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  autoComplete?: string;
+  required?: boolean;
+  minLength?: number;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type={show ? "text" : "password"}
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        required={required}
+        minLength={minLength}
+        className="h-11 pr-10"
+      />
+      <button
+        type="button"
+        onClick={() => setShow(v => !v)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+        tabIndex={-1}
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+}
 
 export default function Signup() {
   const { register } = useAuth();
@@ -14,6 +58,7 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [error, setError] = useState("");
@@ -25,6 +70,11 @@ export default function Signup() {
 
     if (!dateOfBirth) {
       setError("Date of birth is required");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
@@ -119,17 +169,30 @@ export default function Signup() {
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Min. 6 characters"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={setPassword}
+                placeholder="Min. 6 characters"
+                autoComplete="new-password"
                 required
                 minLength={6}
-                className="h-11"
               />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="confirm-password" className="text-sm font-semibold">Confirm Password</Label>
+              <PasswordInput
+                id="confirm-password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                placeholder="Re-enter your password"
+                autoComplete="new-password"
+                required
+              />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-xs text-red-500 mt-0.5">Passwords do not match</p>
+              )}
             </div>
 
             {error && (
@@ -140,7 +203,7 @@ export default function Signup() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!!confirmPassword && password !== confirmPassword)}
               className="h-11 bg-accent hover:bg-accent/90 text-white font-bold uppercase tracking-widest rounded-xl mt-1"
             >
               {loading ? "Creating account..." : "Create Account"}
