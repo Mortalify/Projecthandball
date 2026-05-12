@@ -7,6 +7,7 @@ import clinicRegistrationsRouter from "./clinic-registrations.js";
 import leaderboardRouter from "./leaderboard.js";
 import printifyRouter from "./printify.js";
 import stripeRouter from "./stripe.js";
+import youtubeRouter from "./youtube.js";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(clinicRegistrationsRouter);
 router.use(leaderboardRouter);
 router.use(printifyRouter);
 router.use(stripeRouter);
+router.use(youtubeRouter);
 
 export default router;

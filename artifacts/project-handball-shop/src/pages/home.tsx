@@ -1,14 +1,49 @@
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useProducts } from "@/hooks/use-printify";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Star, Truck, ShieldCheck } from "lucide-react";
+import { ArrowRight, Star, Truck, ShieldCheck, Radio, ExternalLink } from "lucide-react";
 import logoSrc from "@assets/project_handball_logo_1778253221361.png";
+import { useState, useEffect } from "react";
+
+interface LiveStatus {
+  live: boolean;
+  channelId?: string;
+  videoId?: string | null;
+  title?: string | null;
+}
+
+function useLiveStream() {
+  const [status, setStatus] = useState<LiveStatus>({ live: false });
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch("/api/youtube/live");
+        if (res.ok) {
+          const data: LiveStatus = await res.json();
+          setStatus(data);
+        }
+      } catch {
+        // network error — silently ignore
+      } finally {
+        setChecked(true);
+      }
+    };
+    check();
+    const interval = setInterval(check, 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return { status, checked };
+}
 
 export default function Home() {
   const { products, loading } = useProducts();
   const featuredProducts = products.slice(0, 3);
+  const { status: liveStatus, checked: liveChecked } = useLiveStream();
 
   return (
     <div className="flex flex-col min-h-screen">
