@@ -1,7 +1,9 @@
 import Stripe from "stripe";
 import { Client } from "pg";
+import { Resend } from "resend";
 
 const PRINTIFY_API = "https://api.printify.com/v1";
+const ADMIN_EMAILS = ["shianrdenton@gmail.com", "victoriousparks@gmail.com"];
 
 async function readRawBody(req: any): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -60,6 +62,66 @@ async function findVariantId(
   } catch (err) {
     console.error(`Exception looking up variant for product ${productId}:`, err);
     return null;
+  }
+}
+
+async function sendOrderNotificationEmail(
+  session: Stripe.Checkout.Session,
+  rawCart: { p: string; c: string; s: string; q: number }[],
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("RESEND_API_KEY not set — skipping order notification email");
+    return;
+  }
+
+  const resend = new Resend(apiKey);
+
+  const shipping = (session as any).shipping_details?.address;
+  const customerName: string =
+    (session as any).shipping_details?.name ?? session.customer_details?.name ?? "Customer";
+  const customerEmail = session.customer_details?.email ?? "—";
+  const amountPaid = session.amount_total != null
+    ? `$${(session.amount_total / 100).toFixed(2)}`
+    : "—";
+
+  const itemsHtml = rawCart
+    .map((item) => {
+      const parts = [item.c, item.s].filter(Boolean).join(" / ");
+      return `<li><strong>${item.p}</strong>${parts ? ` — ${parts}` : ""} × ${item.q}</li>`;
+    })
+    .join("");
+
+  const shippingText = shipping
+    ? [shipping.line1, shipping.line2, shipping.city, shipping.state, shipping.postal_code, shipping.country]
+        .filter(Boolean)
+        .join(", ")
+    : "—";
+
+  const html = `
+    <h2>New Project Handball Order</h2>
+    <p><strong>Customer:</strong> ${customerName} (${customerEmail})</p>
+    <p><strong>Amount paid:</strong> ${amountPaid}</p>
+    <p><strong>Ship to:</strong> ${shippingText}</p>
+    <p><strong>Items:</strong></p>
+    <ul>${itemsHtml}</ul>
+    <p style="color:#888;font-size:12px;">Stripe session: ${session.id}</p>
+  `;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: "Project Handball <onboarding@resend.dev>",
+      to: ADMIN_EMAILS,
+      subject: `New order from ${customerName} — ${amountPaid}`,
+      html,
+    });
+    if (error) {
+      console.error("Resend email error:", error);
+    } else {
+      console.log("Order notification email sent to admins");
+    }
+  } catch (err) {
+    console.error("Exception sending order notification email:", err);
   }
 }
 
@@ -225,6 +287,17 @@ export default async function handler(req: any, res: any) {
         console.error("Tournament registration save failed:", err),
       );
     } else {
+      let rawCart: { p: string; c: string; s: string; q: number }[] = [];
+      try {
+        rawCart = JSON.parse(meta.cart_items ?? "[]");
+      } catch {
+        console.error("Failed to parse cart_items for email notification");
+      }
+
+      sendOrderNotificationEmail(session, rawCart).catch((err) =>
+        console.error("Order notification email failed:", err),
+      );
+
       createPrintifyOrder(session).catch((err) =>
         console.error("Printify order creation failed:", err),
       );
