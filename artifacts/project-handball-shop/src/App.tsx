@@ -2,8 +2,8 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { CartProvider } from "@/contexts/cart-context";
 import { AuthProvider } from "@/contexts/auth-context";
+import { CartProvider } from "@/contexts/cart-context";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { RollieChatbot } from "@/components/rollie-chatbot";
@@ -17,6 +17,7 @@ import Tournaments from "@/pages/tournaments";
 import Clinics from "@/pages/clinics";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
+import Account from "@/pages/account";
 import CheckoutSuccess from "@/pages/checkout-success";
 import CheckoutCancel from "@/pages/checkout-cancel";
 import NotFound from "@/pages/not-found";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/clinics" component={Clinics} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
+      <Route path="/account" component={Account} />
       <Route path="/checkout/success" component={CheckoutSuccess} />
       <Route path="/checkout/cancel" component={CheckoutCancel} />
       <Route component={NotFound} />
@@ -44,25 +46,25 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <CartProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
           <AuthProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <main className="flex-grow">
-                  <Router />
-                </main>
-                <Footer />
-              </div>
-              <RollieChatbot />
-            </WouterRouter>
-            <Toaster />
+            <CartProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <div className="flex flex-col min-h-screen">
+                  <Navbar />
+                  <main className="flex-grow">
+                    <Router />
+                  </main>
+                  <Footer />
+                </div>
+                <RollieChatbot />
+              </WouterRouter>
+              <Toaster />
+            </CartProvider>
           </AuthProvider>
-        </CartProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

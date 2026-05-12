@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { Product, ProductColor } from "@/lib/printify";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 
 export type CartItem = {
   product: Product;
@@ -17,12 +18,19 @@ type CartContextType = {
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
+  discountedSubtotal: number;
+  discountRate: number;
+  isSRank: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { player } = useAuth();
+
+  const isSRank = player?.rank === "s";
+  const discountRate = isSRank ? 0.2 : 0;
 
   useEffect(() => {
     try {
@@ -99,9 +107,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const discountedSubtotal = subtotal * (1 - discountRate);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal, discountedSubtotal, discountRate, isSRank }}>
       {children}
     </CartContext.Provider>
   );

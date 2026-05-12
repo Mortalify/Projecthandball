@@ -1,27 +1,32 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useCart } from "@/contexts/cart-context";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Loader2, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, subtotal } = useCart();
+  const { items, updateQuantity, removeItem, subtotal, discountedSubtotal, discountRate, isSRank } = useCart();
+  const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isFreeShipping = subtotal >= 150;
-  const shippingProgress = Math.min((subtotal / 150) * 100, 100);
-  const amountToFreeShipping = (150 - subtotal).toFixed(2);
+  const displayTotal = isSRank ? discountedSubtotal : subtotal;
+  const isFreeShipping = displayTotal >= 150;
+  const shippingProgress = Math.min((displayTotal / 150) * 100, 100);
+  const amountToFreeShipping = (150 - displayTotal).toFixed(2);
 
   const handleCheckout = async () => {
     setLoading(true);
     setError(null);
     try {
       const BASE = import.meta.env.BASE_URL ?? "/";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
       const res = await fetch(`${BASE}api/stripe/checkout`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           items: items.map((i) => ({
             productId: i.product.id,
@@ -29,7 +34,7 @@ export default function Cart() {
             sizeName: i.size,
             quantity: i.quantity,
             name: i.product.name,
-            price: i.product.price,
+            price: isSRank ? +(i.product.price * (1 - discountRate)).toFixed(2) : i.product.price,
             image: i.product.image,
           })),
         }),
@@ -180,11 +185,26 @@ export default function Cart() {
             <div className="rounded-2xl border border-border/50 bg-card p-6 sticky top-24 shadow-sm">
               <h2 className="font-display font-black text-xl uppercase tracking-tight text-primary mb-6">Order Summary</h2>
 
+              {isSRank && (
+                <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-purple-50 border border-purple-200">
+                  <Star className="h-4 w-4 fill-purple-500 text-purple-500 shrink-0" />
+                  <p className="text-xs font-bold text-purple-700">S Rank — 20% discount applied</p>
+                </div>
+              )}
+
               <div className="space-y-3 mb-5 pb-5 border-b border-border/50 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
-                  <span className="text-foreground font-semibold">${subtotal.toFixed(2)}</span>
+                  <span className={isSRank ? "line-through text-muted-foreground" : "text-foreground font-semibold"}>
+                    ${subtotal.toFixed(2)}
+                  </span>
                 </div>
+                {isSRank && (
+                  <div className="flex justify-between text-purple-700 font-semibold">
+                    <span>S Rank Price (20% off)</span>
+                    <span>${discountedSubtotal.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
                   <span className={isFreeShipping ? "text-green-600 font-bold" : "text-foreground font-semibold"}>
@@ -195,7 +215,7 @@ export default function Cart() {
 
               <div className="flex justify-between items-center mb-6">
                 <span className="font-display font-black text-base uppercase tracking-wide text-primary">Total</span>
-                <span className="font-display font-black text-2xl text-accent">${subtotal.toFixed(2)}</span>
+                <span className="font-display font-black text-2xl text-accent">${displayTotal.toFixed(2)}</span>
               </div>
 
               {error && (
